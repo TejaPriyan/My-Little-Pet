@@ -1,0 +1,32 @@
+My Little Pet — Proprietary License
+Copyright (c) 2026 Teja Priyan (GitHub: TejaPriyan).
+All rights reserved in original material owned by the author.
+
+1. PERSONAL USE
+You may download and run official My Little Pet releases for your own personal,
+non-commercial use and keep reasonable backup copies of the release and your
+own pet-save data. This permission is revocable to the extent permitted by law.
+
+2. SOURCE CODE, ARTWORK, AND BRANDING
+Except for the personal-use permission above, no permission is granted to copy,
+modify, redistribute, sublicense, sell, rebrand, or use the original source
+code, artwork, documentation, or branding in another product or derivative
+project without prior written permission from the copyright holder.
+Public source availability does not make this an open-source project.
+
+3. EXCEPTIONS AND THIRD-PARTY SOFTWARE
+This notice does not restrict rights granted by applicable law, GitHub's terms
+for content hosted on its service (including platform viewing and forking),
+or the separate licenses of third-party components. Those components remain
+under their respective licenses. See packaging/THIRD-PARTY-NOTICES.txt.
+No ownership is claimed over third-party components. Reverse engineering to
+debug modifications to LGPL-covered libraries remains permitted as required
+by those licenses.
+
+4. NO WARRANTY
+To the maximum extent permitted by applicable law, the software is provided
+AS IS, without warranties of any kind. The author is not liable for damages
+arising from its use. Nothing here limits rights that cannot legally be waived.
+
+5. PERMISSION REQUESTS
+Contact the project owner at https://github.com/TejaPriyan for written permission.

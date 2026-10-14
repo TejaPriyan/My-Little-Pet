@@ -1,0 +1,30 @@
+name: Bug report
+description: Report a reproducible My Little Pet problem
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: "Do not include credentials, private information, or full save files. Security issues: see SECURITY.md."
+  - type: input
+    id: version
+    attributes:
+      label: Version and platform
+      placeholder: "1.1.0, Windows 11 / Android Chrome / iPhone Safari"
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Expected and actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Screenshots or sanitized error details

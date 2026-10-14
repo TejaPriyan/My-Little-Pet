@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {fresh,normalize,tick,care,buy,claimDaily,finishHunt,xpNeeded} from '../dist/app/engine.mjs';
+const now=new Date(2026,9,14,12).getTime();
+let s=fresh('Rose','Mochi',now);s.onboarded=true;
+assert.equal(s.owner,'Rose');assert.equal(s.pet,'Mochi');assert.equal(s.coins,20);
+s.happy=100;assert.equal(care(s,'pet',now).ok,true);assert.equal(s.daily.pet,1);s=fresh('Rose','Mochi',now);
+assert.equal(care(s,'feed',now).ok,true);assert.equal(s.food,100);assert.equal(s.coins,22);assert.equal(care(s,'feed',now+10).ok,false);assert.equal(s.coins,22);
+s.food=20;s.happy=20;s.energy=20;care(s,'rest',now);tick(s,now+120000);assert.equal(s.energy,80);assert.equal(s.sleeping,true);tick(s,now+240000);assert.equal(s.energy,100);assert.equal(s.sleeping,false);
+s=fresh('Rose','Mochi',now);s.coins=119;assert.equal(buy(s,'pet','dog'),false);assert.equal(s.species,'cat');s.coins=120;assert.equal(buy(s,'pet','dog'),true);assert.equal(s.coins,0);assert.equal(buy(s,'pet','dog'),true);assert.equal(s.coins,0);assert.equal(buy(s,'pet','toString'),false);
+s.daily={date:s.daily.date,feed:2,play:2,pet:2,claimed:false};assert.equal(claimDaily(s,now),true);assert.equal(s.coins,30);assert.equal(claimDaily(s,now),false);assert.equal(s.coins,30);
+s=fresh('Rose','Mochi',now);s.xp=xpNeeded(1)-1;assert.equal(finishHunt(s,12,now),true);assert.equal(s.level,2);const coins=s.coins;assert.equal(finishHunt(s,12,now+1),false);assert.equal(s.coins,coins);
+const restored=normalize(JSON.parse(JSON.stringify(s)),now);assert.equal(restored.owner,'Rose');assert.equal(restored.level,2);assert.equal(restored.coins,s.coins);
+const bad=normalize({...s,owner:[],pet:'<script>',species:'__proto__',ownedPets:['__proto__'],coins:-100,energy:NaN,room:'starlight'},now);assert.equal(bad.owner,'Friend');assert.equal(bad.species,'cat');assert.equal(bad.coins,0);assert.equal(bad.energy,90);assert.equal(bad.room,'classic');assert.throws(()=>normalize({}));assert.throws(()=>normalize({...s,version:999}));
+s=fresh();s.food=1;s.happy=2;tick(s,Date.now()+86400000);assert.equal(s.food,1);assert.equal(s.happy,2);s.daily.claimed=true;tick(s,Date.now()+172800000);assert.equal(s.daily.claimed,false);
+console.log('PASS mobile: care, cooldowns, sleep, purchases, repeat rewards, level-up, daily rollover, validated backups');

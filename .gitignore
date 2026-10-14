@@ -1,0 +1,29 @@
+# Local dependencies and build outputs
+.venv/
+.runtime/
+.build-tools/
+node_modules/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+packaging/build/
+release/
+review-temp/
+review-shots/
+upgrade-shots/
+backup-before-upgrade/
+*.log
+*.tar.gz
+# Player data, local secrets, and hosting credentials
+teja-pet/save/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+.openai/
+.aws/
+.codex/
+.agents/
+.DS_Store
+Thumbs.db
