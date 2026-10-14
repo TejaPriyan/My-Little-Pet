@@ -16,6 +16,11 @@ Output goes to `my-little-pet-site/dist/downloads`. The recipe resolves paths re
 ## Website / PWA
 Static HTML/CSS/JS, no npm install or build step. Run all Node tests before publication. Bump `dist/app/sw.js`'s cache version when changing precached app files. Old clients may keep the previous worker until open app windows close. Hosting access is configured separately; GitHub visibility does not change website privacy.
 
+### Vercel
+Import the repository with **Root Directory left at the repository root** and deploy the latest `main` commit. The root `vercel.json` selects the Other/static preset, skips installation and building, and serves only `my-little-pet-site/dist`. `.vercelignore` excludes the desktop Python application from Vercel's deployment input. Do not select `teja-pet` as Root Directory or a Python framework preset. `/app/` keeps a trailing slash so the mobile app's relative scripts and service worker resolve correctly.
+
+If an older deployment reports that `main.py` has no `app`, redeploy the latest commit after correcting Root Directory. The desktop game does not need an HTTP handler. Vercel access protection is configured independently of the existing private Sites preview. Before using a Vercel domain as the primary public site, update the canonical, social, sitemap and llms URLs to that final domain.
+
 ## Artwork and testing
 `python packaging/export_site_art.py` exports art from the real desktop renderer with isolated temporary saves. Run tests from the repository root. Tests may create ignored `review-temp`, `review-shots` or `upgrade-shots` output. Set `TEJA_SHOTS` to choose a screenshot directory. Never test by deleting a real player's save.
 

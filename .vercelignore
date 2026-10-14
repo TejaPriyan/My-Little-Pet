@@ -1,0 +1,17 @@
+# The Python game is a downloadable desktop app, not a serverless function.
+teja-pet/
+packaging/
+.github/
+docs/
+*.py
+*.pyw
+*.cmd
+requirements*.txt
+my-little-pet-site/tests/
+review-temp/
+review-shots/
+upgrade-shots/
+.runtime/
+.build-tools/
+release/
+*.log
