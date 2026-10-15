@@ -21,6 +21,9 @@ Import the repository with **Root Directory left at the repository root** and de
 
 If an older deployment reports that `main.py` has no `app`, redeploy the latest commit after correcting Root Directory. The desktop game does not need an HTTP handler. Vercel access protection is configured independently of the existing private Sites preview. Before using a Vercel domain as the primary public site, update the canonical, social, sitemap and llms URLs to that final domain.
 
+### GitHub Pages
+In Settings → Pages → Build and deployment, select **GitHub Actions** as Source. The `Publish pet website to GitHub Pages` workflow uploads only `my-little-pet-site/dist`, serving its `index.html` at the project URL. Publishing the repository root through the branch-based Jekyll workflow displays the README instead. Relative asset/app paths support the `/My-Little-Pet/` project prefix. If switching the source after a deployment failed, rerun the Pages workflow. The private Sites preview has independent access settings.
+
 ## Artwork and testing
 `python packaging/export_site_art.py` exports art from the real desktop renderer with isolated temporary saves. Run tests from the repository root. Tests may create ignored `review-temp`, `review-shots` or `upgrade-shots` output. Set `TEJA_SHOTS` to choose a screenshot directory. Never test by deleting a real player's save.
 
