@@ -20,6 +20,8 @@ A cozy pixel-art companion by **Teja Priyan**: a Windows desktop pet and an inst
 
 ## Download and install
 
+**itch.io:** [Download My Little Pet — Free Edition](https://tejapriyan.itch.io/mylittlepet).
+
 **Windows 10/11, 64-bit:** use the [official website download](https://my-little-pet-cozy-companion.greenlarch1024.chatgpt.site/#download), or open [the installer in this repository](my-little-pet-site/dist/downloads/MyLittlePet-1.1.0-Windows-Setup.exe) and choose **Download raw file**. Version 1.1.0 is about 16.1 MB and includes Python. Verify against [SHA256SUMS.txt](my-little-pet-site/dist/downloads/SHA256SUMS.txt). The installer is unsigned; download only if you trust the source. First launch asks for two names; press **D** after setup for desktop mode. Uninstalling retains pet saves.
 
 **Android / iPhone:** open [the mobile app](https://my-little-pet-cozy-companion.greenlarch1024.chatgpt.site/app/) in Chrome on Android or Safari on iPhone. Choose Install app / Add to Home Screen (Safari: Share → Add to Home Screen). Wait for **Ready for offline visits** in Settings. This is a PWA, not an APK or IPA. The mobile pet stays inside the app.
