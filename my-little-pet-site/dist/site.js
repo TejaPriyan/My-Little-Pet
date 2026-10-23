@@ -1,8 +1,8 @@
 const $ = s => document.querySelector(s);
 let selected = 'cat';
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
-const petNames = {cat:'Mochi',dog:'Biscuit',bunny:'Clover',fox:'Maple'};
-const petTitles = {cat:'kitty',dog:'puppy',bunny:'bunny',fox:'fox'};
+const petNames = {cat:'Mochi',dog:'Biscuit',bunny:'Clover',fox:'Maple',dino:'Fern',tiger:'Tiggy',parrot:'Pip'};
+const petTitles = {cat:'kitty',dog:'puppy',bunny:'bunny',fox:'fox',dino:'dino',tiger:'tiger',parrot:'parrot'};
 const clean = (value, fallback) => value.replace(/[^a-z0-9 -]/gi,'').trim().slice(0,12) || fallback;
 function updateNames(){
   const owner=clean($('#owner-name').value,'Friend'),pet=clean($('#pet-name').value,'Mochi');
@@ -19,8 +19,7 @@ function updateNames(){
     image.alt=`${pet}, your pixel ${petTitles[selected]}`;
   }
   $('#hero-care-hint').textContent=`Click ${pet} to say hello!`;
-  const params=new URLSearchParams({owner,pet});
-  document.querySelectorAll('a[href^="app/"]').forEach(link=>link.href=`app/?${params}`);
+
 }
 document.querySelectorAll('[data-species]').forEach(button=>button.addEventListener('click',()=>{
   const useDefaultName=!$('#pet-name').value.trim()||$('#pet-name').value===petNames[selected];
@@ -31,9 +30,9 @@ document.querySelectorAll('[data-species]').forEach(button=>button.addEventListe
   updateNames();
 }));
 ['#owner-name','#pet-name'].forEach(s=>$(s).addEventListener('input',updateNames));
-$('#preview-form').addEventListener('submit',e=>{e.preventDefault();const params=new URLSearchParams({owner:clean($('#owner-name').value,'Friend'),pet:clean($('#pet-name').value,'Mochi')});location.href=`app/?${params}`});
+$('#preview-form').addEventListener('submit',e=>{e.preventDefault();updateNames();$('#name-speech').textContent+=' Your Plus room is coming soon.';});
 let greetings=0;
 $('#hero-pet').addEventListener('click',()=>{const owner=clean($('#owner-name').value,'Friend');$('#hero-speech').textContent=['Purr… best break of the day. ♡','A little snack? Pretty please?','You make my little world happy.',`Hi ${owner}! You’re my person. ♡`][greetings++%4]});
 updateNames();
 fetch('downloads/release.json').then(r=>r.ok?r.json():null).then(r=>{if(r)$('#download-size').textContent=`${r.sizeMB} MB installer · no Python needed`}).catch(()=>{});
-if(matchMedia('(prefers-reduced-motion: reduce)').matches) document.querySelectorAll('img[src$="-idle.gif"]').forEach(img=>img.src=img.src.replace('-idle.gif','.png'));
+if(reducedMotion) document.querySelectorAll('img[src$=".gif"]').forEach(img=>img.src=img.src.replace(/-(idle|dance|wave)\.gif$/,'.png'));

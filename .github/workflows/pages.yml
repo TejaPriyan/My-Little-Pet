@@ -5,6 +5,7 @@ on:
     paths:
       - 'my-little-pet-site/dist/**'
       - '.github/workflows/pages.yml'
+      - 'scripts/prepare-public-site.mjs'
   workflow_dispatch:
 permissions:
   contents: read
@@ -24,12 +25,22 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
       - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
+        id: pages
+      - name: Prepare public showcase only
+        env:
+          PUBLIC_SITE_URL: ${{ steps.pages.outputs.base_url }}
+        run: node scripts/prepare-public-site.mjs
+      - name: Validate public showcase
+        run: node my-little-pet-site/tests/public-release.test.mjs
       - name: Upload the actual website
         uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
         with:
           name: github-pages-${{ github.run_attempt }}
-          path: my-little-pet-site/dist
+          path: public-site
       - name: Deploy website
         id: deployment
         uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4

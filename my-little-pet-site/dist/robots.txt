@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /app/
 
-Sitemap: https://my-little-pet-cozy-companion.greenlarch1024.chatgpt.site/sitemap.xml
+Sitemap: https://littlepet.in/sitemap.xml

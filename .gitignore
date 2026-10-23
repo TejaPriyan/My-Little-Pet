@@ -27,3 +27,6 @@ teja-pet/save/
 .agents/
 .DS_Store
 Thumbs.db
+
+# Public deployment output
+public-site/

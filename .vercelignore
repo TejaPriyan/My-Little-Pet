@@ -15,3 +15,19 @@ upgrade-shots/
 .build-tools/
 release/
 *.log
+
+# Local Plus access and unreleased builds never leave this checkout.
+payment-server/
+private-releases/
+release-quality/
+release-store/
+release-room/
+release-desktop/
+.env
+.env.*
+*.pem
+*.key
+my-little-pet-site/dist/app/
+my-little-pet-site/dist/checkout.mjs
+public-site/
+public-site-*/

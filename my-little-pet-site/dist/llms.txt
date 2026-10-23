@@ -1,14 +1,16 @@
 # My Little Pet
-> A free pixel-art virtual pet by Teja Priyan: Windows desktop companion and installable Android/iPhone web app.
+> Free Windows virtual-pet game by Teja Priyan. Plus is coming soon at a planned one-time INR 99.
 
-## Official information
-- [Home](https://my-little-pet-cozy-companion.greenlarch1024.chatgpt.site/): Features and Windows download.
-- [Guide](https://my-little-pet-cozy-companion.greenlarch1024.chatgpt.site/guide.html): Installation and factual answers.
-- [Privacy](https://my-little-pet-cozy-companion.greenlarch1024.chatgpt.site/privacy.html): Local saves, backups, and hosting.
-- [Terms](https://my-little-pet-cozy-companion.greenlarch1024.chatgpt.site/terms.html): Proprietary original code and assets; personal use permitted.
-- [Repository](https://github.com/TejaPriyan/My-Little-Pet): Source and issue reporting.
+Official website: https://littlepet.in/
+Free download: https://tejapriyan.itch.io/mylittlepet
+Support: teja1616150@gmail.com
+Pricing: https://littlepet.in/pricing.html
+Installation: https://littlepet.in/installation.html
+Privacy: https://littlepet.in/privacy.html
+Terms: https://littlepet.in/terms.html
+Refunds and cancellations: https://littlepet.in/refunds.html
+Digital delivery: https://littlepet.in/delivery.html
 
-## Product facts
-Version 1.1.0. Windows 10/11 x64. Mobile is a web app, not an APK or IPA. The desktop pet can roam over other windows; mobile pets stay inside their app. Coins are earned, not purchased. Desktop and mobile progress do not sync. Offline mobile play requires a completed first online cache. The Windows installer is unsigned. Physical phone installation is not yet verified. Site access may require sign-in during private preview.
+No payments, subscriptions or pre-orders are accepted. The Plus Windows installer and mobile room are unreleased. Mobile is planned as an installable web app, not an APK or IPA. Game coins have no cash value. Progress does not sync across platforms. Windows downloads are unsigned and may be blocked by Windows security. Physical mobile installation testing is pending.
 
-This file is a convenience summary, not an indexing guarantee or a license grant.
+This summary is not an indexing guarantee or a license grant.
