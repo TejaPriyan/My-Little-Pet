@@ -14,15 +14,16 @@ try {await mkdir(out);} catch(error) {
   if(existing.length)throw new Error('public-site already contains files. Archive it before rebuilding.');
 }
 async function copy(file){const from=path.join(src,file);if(!(await lstat(from)).isFile())throw new Error('Expected regular file: '+file);const dest=path.join(out,file);await mkdir(path.dirname(dest),{recursive:true});await copyFile(from,dest);}
-for(const file of [...pages,'style.css','plus.css','site.js','robots.txt','sitemap.xml','llms.txt','google2af4e1ed3191321d.html','downloads/release.json','downloads/SHA256SUMS.txt','downloads/THIRD-PARTY-NOTICES.txt'])await copy(file);
+for(const file of [...pages,'style.css','plus.css','site.js','plus-checkout.js','robots.txt','sitemap.xml','llms.txt','google2af4e1ed3191321d.html','downloads/release.json','downloads/SHA256SUMS.txt','downloads/THIRD-PARTY-NOTICES.txt'])await copy(file);
 // Assets explicitly referenced by public pages, plus the interactive pet greeting variants.
 const assets=new Set();
-for(const file of [...pages,'style.css','plus.css','site.js']){
+for(const file of [...pages,'style.css','plus.css','site.js','plus-checkout.js']){
   const text=await readFile(path.join(src,file),'utf8');
   for(const match of text.matchAll(/(?:["'(]|https:\/\/littlepet\.in\/)(assets\/[\w./-]+\.(?:png|gif|svg|ico|woff2?|ttf))/g))assets.add(match[1]);
 }
 for(const species of ['cat','dog','bunny','fox','dino','tiger','parrot']){assets.add(`assets/pets/${species}-0.png`);assets.add(`assets/pets/${species}-0-idle.gif`);}
 for(const asset of assets)await copy(asset);
+await copy('payment-success.html');
 await mkdir(path.join(out,'app'));
 const notice=await readFile(path.join(out,'coming-soon.html'),'utf8');
 await writeFile(path.join(out,'app/index.html'),notice.replace('<head>','<head><base href="../">').replace('content="index,follow"','content="noindex,follow"'));
