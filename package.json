@@ -1,0 +1,12 @@
+{
+  "name": "my-little-pet-site",
+  "private": true,
+  "version": "1.0.0",
+  "description": "My Little Pet public website and Stripe checkout functions",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "stripe": "^18.5.0"
+  }
+}
