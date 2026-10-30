@@ -12,7 +12,7 @@ SAVE_PATH = os.path.join(SAVE_DIR, "save_data.json")
 SETTINGS_PATH = os.path.join(SAVE_DIR, "settings.json")
 
 # ---------------------------------------------------------------- display
-TITLE = "My Little Pet"
+TITLE = "My Little Pet" + (" - " + os.environ['MY_LITTLE_PET_EDITION'] if os.environ.get('MY_LITTLE_PET_EDITION') else "")
 W, H = 480, 270            # internal pixel-art resolution
 START_SCALE = 2            # window opens at 960 x 540
 HUD_H = 34                 # top panel height
@@ -60,7 +60,19 @@ PET_HAPPY = 4
 TREAT_BONUS = 15
 
 XP_REWARDS = {"feed": 5, "play": 10, "pet": 3, "sleep": 5, "explore": 5}
-COIN_REWARDS = {"feed": 2, "play": 5, "pet": 1, "sleep": 2, "explore": 1, "levelup": 20}
+COIN_REWARDS = {"feed": 0, "play": 1, "pet": 0, "sleep": 0, "explore": 0, "levelup": 8}
+REWARD_COOLDOWNS = {"feed": 120, "play": 180, "pet": 120, "sleep": 300, "explore": 300}
+SLOT_PRICES = (250, 600, 1000)
+DAILY_COINS = 12
+FOODS = {
+    "kibble": {"name": "EVERYDAY BOWL", "price": 0, "hunger": 20, "happy": 3, "energy": 0},
+    "berries": {"name": "BERRY BOWL", "price": 8, "hunger": 28, "happy": 10, "energy": 0},
+    "fish": {"name": "FISH BITES", "price": 12, "hunger": 38, "happy": 8, "energy": 3},
+    "greens": {"name": "GARDEN GREENS", "price": 10, "hunger": 32, "happy": 6, "energy": 8},
+    "milk": {"name": "CREAMY PET MILK", "price": 8, "hunger": 18, "happy": 9, "energy": 6},
+    "soup": {"name": "PUMPKIN SOUP", "price": 14, "hunger": 35, "happy": 8, "energy": 10},
+    "feast": {"name": "PARTY PLATTER", "price": 24, "hunger": 55, "happy": 20, "energy": 12},
+}
 EXPLORE_DISTANCE = 600       # pixels walked for one "explore" reward
 
 # ---------------------------------------------------------------- saving
@@ -80,12 +92,15 @@ SHOP_ITEMS = {
 }
 
 # ---------------------------------------------------------------- pets & style
-SPECIES_ORDER = ("cat", "dog", "bunny", "fox")
+SPECIES_ORDER = ("cat", "dog", "bunny", "fox", "dino", "tiger", "parrot")
 SPECIES = {
     "cat": {"name": "KITTY", "price": 0, "desc": "CURIOUS & CUDDLY", "voice": "meow"},
-    "dog": {"name": "PUPPY", "price": 120, "desc": "LOYAL & PLAYFUL", "voice": "woof"},
-    "bunny": {"name": "BUNNY", "price": 150, "desc": "SOFT & BOUNCY", "voice": "squeak"},
-    "fox": {"name": "FOX", "price": 200, "desc": "CLEVER & FLUFFY", "voice": "yip"},
+    "dog": {"name": "PUPPY", "price": 160, "desc": "LOYAL & PLAYFUL", "voice": "woof"},
+    "bunny": {"name": "BUNNY", "price": 200, "desc": "SOFT & BOUNCY", "voice": "squeak"},
+    "fox": {"name": "FOX", "price": 260, "desc": "CLEVER & FLUFFY", "voice": "yip"},
+    "dino": {"name": "DINO", "price": 450, "desc": "TINY ROARS, BIG HEART", "voice": "chirrup"},
+    "tiger": {"name": "TIGER", "price": 650, "desc": "STRIPES & SASS", "voice": "roar"},
+    "parrot": {"name": "PARROT", "price": 800, "desc": "CHATTY LITTLE DANCER", "voice": "chirp"},
 }
 # head accessories (one worn at a time). "hat" is the original Fancy Bow key.
 ACCESSORY_ORDER = ("hat", "flower", "party", "crown")

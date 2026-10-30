@@ -1,16 +1,10 @@
 # My Little Pet
-> Free Windows virtual-pet game by Teja Priyan. Plus is coming soon at a planned one-time INR 99.
 
-Official website: https://littlepet.in/
-Free download: https://tejapriyan.itch.io/mylittlepet
-Support: teja1616150@gmail.com
-Pricing: https://littlepet.in/pricing.html
-Installation: https://littlepet.in/installation.html
-Privacy: https://littlepet.in/privacy.html
-Terms: https://littlepet.in/terms.html
-Refunds and cancellations: https://littlepet.in/refunds.html
-Digital delivery: https://littlepet.in/delivery.html
+Free virtual-pet games by Teja Priyan. Free and Plus Windows downloads and an installable mobile pet room. No checkout, subscription or activation. Game items use earned coins only. Optional support: https://buymeacoffee.com/tejapriyan
 
-No payments, subscriptions or pre-orders are accepted. The Plus Windows installer and mobile room are unreleased. Mobile is planned as an installable web app, not an APK or IPA. Game coins have no cash value. Progress does not sync across platforms. Windows downloads are unsigned and may be blocked by Windows security. Physical mobile installation testing is pending.
+- [Downloads](https://littlepet.in/#download)
+- [Guide](https://littlepet.in/guide.html)
+- [Privacy](https://littlepet.in/privacy.html)
+- [Support](https://littlepet.in/contact.html)
 
-This summary is not an indexing guarantee or a license grant.
+This file is a summary, not an indexing guarantee.

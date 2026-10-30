@@ -3,8 +3,10 @@ import json
 import os
 import random
 import time
+from life import identity, sanitize_life
+from furniture import BASE_DECOR
 
-from config import SAVE_DIR, SAVE_PATH, SHOP_ITEMS, SPECIES, ACCESSORIES, ACHIEVEMENTS
+from config import SAVE_DIR, SAVE_PATH, SHOP_ITEMS, SPECIES, ACCESSORIES, ACHIEVEMENTS, FOODS
 
 PERSONALITY_KEYS = ("curiosity", "playfulness", "sleepiness", "friendliness")
 
@@ -22,7 +24,12 @@ def clean_name(value, fallback):
 
 def default_data(name="Teja", owner_name="Friend"):
     return {
-        "version": 4,
+        "version": 6,
+        "owned_toys": ["ball"], "selected_toy": "ball",
+        "pet_id": identity(), "bonds": {}, "adventure": {}, "room_layout": {}, "room_hidden": [], "owned_decor": list(BASE_DECOR),
+        "companions": [], "pet_slots": 1, "solo": False,
+        "pantry": {}, "selected_food": "kibble", "reward_times": {}, "arcade": {},
+        "desktop_layout": {},
         "species": "cat", "coat": 0, "owned_species": ["cat"],
         "room_theme": "classic", "owned_rooms": ["classic"],
         "daily": {}, "tutorial_seen": False,
@@ -48,7 +55,7 @@ def default_data(name="Teja", owner_name="Friend"):
             "high_score": 0,
             "distance_walked": 0.0,
             "time_played": 0.0,
-            "treat_high_score": 0, "desktop_visits": 0,
+            "treat_high_score": 0, "desktop_visits": 0, "memory_high_score": 0, "rhythm_high_score": 0, "fetch_high_score": 0, "hurdles_high_score": 0,
         },
         "achievements": [],
         "equipped": {"hat": True},
@@ -108,7 +115,8 @@ def sanitize(raw):
     owned = raw.get("owned_species", ["cat"])
     d["owned_species"] = list(dict.fromkeys(["cat", d["species"]] +
         ([s for s in owned if isinstance(s, str) and s in SPECIES] if isinstance(owned, list) else [])))
-    rooms = ("classic", "garden", "starlight")
+    from rooms import ROOMS
+    rooms = ROOMS
     owned = raw.get("owned_rooms", ["classic"])
     d["owned_rooms"] = list(dict.fromkeys(["classic"] + ([r for r in owned if isinstance(r, str) and r in rooms] if isinstance(owned, list) else [])))
     theme = raw.get("room_theme")
@@ -119,6 +127,43 @@ def sanitize(raw):
                       "play": int(_num(daily.get("play"), 0, 2, 0)), "game": int(_num(daily.get("game"), 0, 1, 0)),
                       "claimed": bool(daily.get("claimed", False))}
     d["tutorial_seen"] = bool(raw.get("tutorial_seen", False))
+    d["pet_slots"] = int(_num(raw.get("pet_slots"), 1, 4, 1))
+    d["solo"] = raw.get("solo") is True
+    companions = raw.get("companions", [])
+    if isinstance(companions, list):
+        for companion in companions[:d["pet_slots"] - 1]:
+            if not isinstance(companion, dict): continue
+            sp = companion.get("species")
+            if not isinstance(sp, str) or sp not in d["owned_species"]: continue
+            d["companions"].append({
+                "pet_name": clean_name(companion.get("pet_name"), SPECIES[sp]["name"].title()),
+                "species": sp, "coat": int(_num(companion.get("coat"), 0, 2, 0)),
+                "hunger": _num(companion.get("hunger"), 0, 100, 80),
+                "happiness": _num(companion.get("happiness"), 0, 100, 85),
+                "energy": _num(companion.get("energy"), 0, 100, 90),
+                "head": companion.get("head") if isinstance(companion.get("head"), str) and companion["head"] in ACCESSORIES and d["inventory"].get(companion["head"]) else None,
+            })
+    pantry = raw.get("pantry", {})
+    if isinstance(pantry, dict):
+        d["pantry"] = {k: int(_num(pantry.get(k), 0, 999, 0)) for k in FOODS if k != "kibble"}
+    food = raw.get("selected_food")
+    d["selected_food"] = food if isinstance(food, str) and food in FOODS else "kibble"
+    rewards = raw.get("reward_times", {})
+    now = time.time()
+    if isinstance(rewards, dict):
+        d["reward_times"] = {k: _num(rewards.get(k), 0, now + 300, 0) for k in ("feed", "play", "pet", "sleep", "explore")}
+    arcade = raw.get("arcade", {})
+    if isinstance(arcade, dict):
+        d["arcade"] = {"lives": int(_num(arcade.get("lives"), 0, 3, 3)), "refill_at": _num(arcade.get("refill_at"), 0, now, now),
+                       "date": str(arcade.get("date", ""))[:10], "earned": int(_num(arcade.get("earned"), 0, 40, 0))}
+    layout = raw.get("desktop_layout", {})
+    if isinstance(layout, dict):
+        d["desktop_layout"] = {"hidden": layout.get("hidden") is True, "compact": layout.get("compact") is True}
+        for k in ("home", "food", "water", "ball"):
+            xy = layout.get(k)
+            if isinstance(xy, list) and len(xy) == 2:
+                d["desktop_layout"][k] = [_num(v, 0, 1, .5) for v in xy]
+    sanitize_life(raw, d)
     return d
 
 

@@ -1,8 +1,9 @@
 """Daily care goals and room unlocks; local dates, no network or account."""
 from datetime import date
+from config import DAILY_COINS
 
 GOALS = {"feed": 3, "play": 2, "game": 1}
-ROOMS = {"classic": ("COZY ROOM", 1), "garden": ("GARDEN ROOM", 3), "starlight": ("STAR ROOM", 5)}
+from rooms import ROOMS, ROOM_PRICES
 
 
 def refresh(pet):
@@ -17,7 +18,7 @@ def record(pet, kind):
         pet.daily[kind] = min(GOALS[kind], pet.daily.get(kind, 0) + 1)
     if not pet.daily.get("claimed") and all(pet.daily.get(k, 0) >= n for k, n in GOALS.items()):
         pet.daily["claimed"] = True
-        pet.coins += 30
+        pet.coins += DAILY_COINS
         return True
     return False
 
@@ -25,7 +26,7 @@ def record(pet, kind):
 def unlock_rooms(pet):
     unlocked = []
     for key, (_, level) in ROOMS.items():
-        if pet.level >= level and key not in pet.owned_rooms:
+        if key not in ROOM_PRICES and pet.level >= level and key not in pet.owned_rooms:
             pet.owned_rooms.append(key)
             unlocked.append(key)
     return unlocked

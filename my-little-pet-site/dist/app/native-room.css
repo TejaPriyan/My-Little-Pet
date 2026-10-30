@@ -1,0 +1,26 @@
+/* The same original walls and beds used by the Windows room. */
+.pet-room.classic{--native-room:url('../assets/rooms/classic-background.png');--native-bed:url('../assets/rooms/classic-bed.png')}
+.pet-room.garden{--native-room:url('../assets/rooms/garden-background.png');--native-bed:url('../assets/rooms/garden-bed.png')}
+.pet-room.starlight{--native-room:url('../assets/rooms/starlight-background.png');--native-bed:url('../assets/rooms/starlight-bed.png')}
+.pet-room.seaside{--native-room:url('../assets/rooms/seaside-background.png');--native-bed:url('../assets/rooms/seaside-bed.png')}
+.pet-room.cabin{--native-room:url('../assets/rooms/cabin-background.png');--native-bed:url('../assets/rooms/cabin-bed.png')}
+.pet-room.moon{--native-room:url('../assets/rooms/moon-background.png');--native-bed:url('../assets/rooms/moon-bed.png')}
+.landscape .pet-room{background-image:var(--native-room);background-size:100% 100%;image-rendering:pixelated;border-radius:12px}
+.landscape .pet-room:before{display:none}
+.landscape .wall-window{display:none}
+.landscape .room-bed{width:112px;height:72px;background:var(--native-bed) center/contain no-repeat;border:0;border-radius:0;box-shadow:none}
+.landscape .room-bed span{display:none}
+.landscape .room-shelf{background:none;border:0;box-shadow:none}
+.landscape .speech{top:34%;border-radius:8px;font-size:12px;max-width:75%;z-index:8}
+.landscape .room-label{background:#fff8e6d9;padding:4px 8px;border-radius:6px;color:#494939}
+@media(orientation:landscape) and (min-width:600px) and (max-height:550px){
+ body:has(#room-panel:not([hidden])) .app-shell{padding:0 184px 60px 12px}
+ .app-header{padding:4px 0;height:30px}.wordmark{font-size:14px}.wordmark img{width:24px;height:24px}
+ .greeting h1{font-size:21px;margin:0}.coin-pill{padding:5px 8px;font-size:11px}.greeting{margin:2px 0}
+ .level-line{font-size:9px;margin:3px 0}.pet-room,.pet-room.has-family{height:calc(100dvh - 130px)!important;min-height:180px;margin-top:5px}
+ .care-actions{position:fixed;right:12px;top:45px;width:158px;display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:0;z-index:10}
+ .care-actions button{display:flex;flex-direction:column;gap:1px;min-height:62px;font-size:12px;padding:5px}.care-actions small{display:none}
+ .needs{position:fixed;right:12px;top:184px;width:158px;display:grid;grid-template-columns:1fr;gap:9px;margin:0;z-index:10}.needs label{font-size:10px}
+ .bottom-nav{height:44px}.bottom-nav button{font-size:9px}.bottom-nav span{font-size:16px}
+ .toy-play-button{margin:8px 0}.room-tools button{min-height:32px;font-size:10px;padding:5px 10px}
+}

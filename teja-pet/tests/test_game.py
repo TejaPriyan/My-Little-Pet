@@ -226,8 +226,8 @@ def test_feeding():
     track_jumps(s, lambda: (seen.add(s.brain.state.name), s.brain.state.name == "IDLE" and "EAT" in seen)[1], 60)
     assert "WALK_TO_OBJECT" in seen and "EAT" in seen
     assert 58 < p.hunger < 62, "hunger +20 (got %.1f)" % p.hunger
-    assert p.happiness > 54, "happiness +5 (got %.1f)" % p.happiness
-    assert p.xp - xp0 == 5 and p.coins - coins0 == 12  # action + first-meal achievement
+    assert p.happiness > 52, "happiness +3 (got %.1f)" % p.happiness
+    assert p.xp - xp0 == 5 and p.coins - coins0 == 10  # action + first-meal achievement
     assert abs(p.x - 386) < 6 and abs(p.y - 222) < 6, "ate at the bowl"
     assert os.path.isfile(config.SAVE_PATH)
 
@@ -417,7 +417,7 @@ def test_level_up():
     c0, lv0 = p.coins, p.level
     s.brain._reward("feed")
     s.step(3, 16, False)
-    assert p.level == lv0 + 1 and p.coins - c0 == 2 + 20
+    assert p.level == lv0 + 1 and p.coins - c0 == 8
     assert s.g.ui.banner and s.g.ui.banner["level"] == lv0 + 1
     assert any(pt.kind in ("px", "spark") for pt in s.g.fx.parts)
     s.step(20, 16)
@@ -500,6 +500,8 @@ def test_ui_buttons_and_shortcuts():
     s.click(*btn["pet"].rect.center); s.step(3, 16, False)
     assert s.brain.state.name == "HAPPY"
     s.click(*btn["shop"].rect.center); s.step(3, 16, False)
+    assert type(s.g.overlay).__name__ == "ChoiceMenu"
+    s.g._shop_route("catalog")
     assert type(s.g.overlay).__name__ == "ShopMenu"
     s.key(pg.K_ESCAPE); s.step(2, 16, False)
     assert s.g.overlay is None

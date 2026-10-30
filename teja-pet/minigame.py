@@ -6,6 +6,7 @@ fireflies to earn coins, pet XP, and happiness.
 import math
 import random
 import pygame
+from economy import start_round, game_reward
 
 from config import (W, H, HUD_H, BAR_Y, INK, CREAM, CREAM_DK, PINK, GOLD, WHITE,
                     C_ENERGY, C_HAPPY, C_XP)
@@ -74,7 +75,7 @@ class BugCatchGame:
     TITLE = "CATCH THE BUG!"
     SCORE_KEY = "high_score"
 
-    def __init__(self, ui, pet, audio, fx, on_finish):
+    def __init__(self, ui, pet, audio, fx, on_finish, practice=False):
         self.ui, self.pet, self.audio, self.fx = ui, pet, audio, fx
         self.on_finish = on_finish
         self.modal = True
@@ -90,6 +91,8 @@ class BugCatchGame:
         self.spawn_timer = 0.0
         self.rewarded = False
         self.levels_gained = 0
+        self.paid_round = False if practice else start_round(pet)
+        self.completed = False
         self.panel_rect = pygame.Rect(110, 48, 260, 168)
         self.collect_btn = pygame.Rect(self.panel_rect.centerx - 55, self.panel_rect.bottom - 26, 110, 18)
 
@@ -117,6 +120,7 @@ class BugCatchGame:
             self.bugs = [b for b in self.bugs if b.alive]
 
             if self.time_left <= 0:
+                self.completed = True
                 self.state = "results"
                 self._apply_rewards()
 
@@ -159,15 +163,13 @@ class BugCatchGame:
             return
         self.rewarded = True
         # Calculate rewards based on score
-        coins_earned = max(2, self.score // 2) + self.gold_caught * 2
-        xp_earned = max(5, self.score * 2)
-        happy_boost = 25
-
-        self.pet.coins += coins_earned
-        self.levels_gained = self.pet.gain_level_rewards(xp_earned)
+        coins_earned, xp_earned, self.levels_gained = game_reward(self.pet, self.score, self.completed, self.paid_round)
+        happy_boost = 25 if self.completed and not getattr(self, "watch", False) else 0
+        self.happy_boost = happy_boost
         self.pet.happiness = min(100.0, self.pet.happiness + happy_boost)
-        self.pet.stats["games_played"] = self.pet.stats.get("games_played", 0) + 1
-        self.pet.stats[self.SCORE_KEY] = max(self.pet.stats.get(self.SCORE_KEY, 0), self.score)
+        if self.completed and not getattr(self, "watch", False):
+            self.pet.stats["games_played"] = self.pet.stats.get("games_played", 0) + 1
+            self.pet.stats[self.SCORE_KEY] = max(self.pet.stats.get(self.SCORE_KEY, 0), self.score)
 
         self.coins_earned = coins_earned
         self.xp_earned = xp_earned
@@ -176,6 +178,7 @@ class BugCatchGame:
     def draw(self, surf):
         ui = self.ui
         if self.state == "playing":
+            ui.text(surf, "PRACTICE - NO REWARDS" if not self.paid_round else "FINISH THE ROUND TO EARN COINS", (240, 232), INK, anchor="midtop")
             # Draw semi-transparent header bar
             bar_rect = pygame.Rect(40, HUD_H + 4, W - 80, 18)
             ui.draw_panel(surf, bar_rect)
@@ -210,7 +213,7 @@ class BugCatchGame:
             ui.text(surf, "+%d XP" % self.xp_earned, (r.centerx + 22, r.y + 87), C_XP)
 
             surf.blit(ui.assets.icons["heart"], (r.x + 24, r.y + 100))
-            ui.text(surf, "+25 HAPPINESS", (r.x + 38, r.y + 101), C_HAPPY)
+            ui.text(surf, "WATCH MODE - JUST FOR FUN" if getattr(self, "watch", False) else "+25 JOY" if self.completed else "ENDED EARLY - NO REWARD", (r.x + 38, r.y + 101), C_HAPPY)
 
             # Collect button
             hover = self.mouse is not None and self.collect_btn.collidepoint((int(self.mouse[0]), int(self.mouse[1])))
@@ -255,6 +258,7 @@ class TreatDropGame(BugCatchGame):
             elif y < BAR_Y: alive.append(drop)
         self.drops = alive
         if self.time_left <= 0:
+            self.completed = True
             self.state = "results"
             self._apply_rewards()
 
@@ -274,3 +278,118 @@ class TreatDropGame(BugCatchGame):
         surf.fill(INK, (x - 21, 225, 42, 11))
         surf.fill((220, 155, 95), (x - 19, 227, 38, 7))
         surf.fill(GOLD, (x - 22, 223, 44, 3))
+
+
+class MemoryGardenGame(BugCatchGame):
+    TITLE = "MEMORY GARDEN"
+    SCORE_KEY = "memory_high_score"
+    TOTAL_TIME = 45
+
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.sequence = [self.rng.randrange(4), self.rng.randrange(4)]
+        self.show_time = 0
+        self.input_index = 0
+        self.mistakes = 0
+        self.flash = -1
+        self.feedback = "WATCH THE FLOWERS"
+
+    def pad(self, i):
+        return pygame.Rect(111 + (i % 2) * 136, 91 + (i // 2) * 59, 122, 47)
+
+    def update(self, dt, mouse):
+        self.mouse = mouse
+        if self.state != "playing": return
+        self.time_left = max(0, self.time_left - dt)
+        self.show_time += dt
+        index = int(self.show_time / .7)
+        self.flash = self.sequence[index] if 0 <= index < len(self.sequence) and self.show_time >= 0 and self.show_time % .7 < .45 else -1
+        if self.show_time >= len(self.sequence) * .7 + .3: self.feedback = "YOUR TURN: CLICK / KEYS 1 2 3 4"
+        if self.time_left <= 0 or self.mistakes >= 3:
+            self.completed = True; self.state = "results"; self._apply_rewards()
+
+    def choose(self, i):
+        if self.state != "playing" or self.show_time < len(self.sequence) * .7 + .3: return
+        if i != self.sequence[self.input_index]:
+            self.mistakes += 1; self.input_index = 0; self.show_time = -.8
+            self.feedback = "LET'S TRY THAT PATTERN AGAIN"
+            self.audio.play("pop", .4)
+        else:
+            self.input_index += 1; self.audio.play("catch", .4)
+            if self.input_index == len(self.sequence):
+                self.score += len(self.sequence) * 2
+                self.sequence.append(self.rng.randrange(4)); self.input_index = 0; self.show_time = -.8
+                self.feedback = "LOVELY! WATCH THE NEXT PATTERN"
+
+    def on_click(self, pos):
+        if self.state == "results": return super().on_click(pos)
+        for i in range(4):
+            if self.pad(i).collidepoint(pos): self.choose(i)
+
+    def on_key(self, ev):
+        if self.state == "playing" and ev.key in (pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4): self.choose(ev.key - pygame.K_1)
+        else: super().on_key(ev)
+
+    def draw(self, surf):
+        if self.state == "results": return super().draw(surf)
+        u = self.ui
+        surf.blit(u.dim, (0, 0)); u.draw_panel(surf, (65, 42, 350, 188))
+        u.text(surf, "MEMORY GARDEN  %ds" % self.time_left, (240, 53), INK, anchor="midtop")
+        u.text(surf, self.feedback, (240, 71), INK, anchor="midtop")
+        for i, color in enumerate(((171, 212, 151), (244, 174, 184), (166, 190, 238), (238, 208, 139))):
+            surf.fill(WHITE if self.flash == i else color, self.pad(i))
+            u.text(surf, str(i + 1) + " *", self.pad(i).center, INK, 2, anchor="center")
+        u.text(surf, "SCORE %d   MISTAKES %d/3%s" % (self.score, self.mistakes, "  PRACTICE" if not self.paid_round else ""), (240, 213), INK, anchor="midtop")
+
+
+class FireflyRhythmGame(BugCatchGame):
+    TITLE = "FIREFLY RHYTHM"
+    SCORE_KEY = "rhythm_high_score"
+
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.elapsed = 0
+        self.last_tap = -1
+        self.message = "TAP WHEN THE LIGHT REACHES THE GOLD BAND"
+
+    @property
+    def light_x(self): return 240 + math.sin(self.elapsed * 2.8) * 138
+
+    def update(self, dt, mouse):
+        self.mouse = mouse
+        if self.state != "playing": return
+        self.elapsed += dt; self.time_left = max(0, self.TOTAL_TIME - self.elapsed)
+        if self.time_left <= 0:
+            self.completed = True; self.state = "results"; self._apply_rewards()
+
+    def tap(self):
+        if self.state != "playing" or self.elapsed - self.last_tap < .4: return
+        self.last_tap = self.elapsed
+        distance = abs(self.light_x - 240)
+        if distance < 17:
+            self.score += 3 if distance < 8 else 1
+            self.message = "PERFECT LITTLE SPARK!" if distance < 8 else "NICE TIMING!"
+            self.audio.play("catch", .5)
+        else:
+            self.score = max(0, self.score - 1); self.message = "WAIT FOR THE GOLD BAND"
+            self.audio.play("pop", .3)
+
+    def on_click(self, pos):
+        if self.state == "results": super().on_click(pos)
+        else: self.tap()
+
+    def on_key(self, ev):
+        if self.state == "playing" and ev.key == pygame.K_SPACE: self.tap()
+        else: super().on_key(ev)
+
+    def draw(self, surf):
+        if self.state == "results": return super().draw(surf)
+        u = self.ui
+        surf.blit(u.dim, (0, 0)); u.draw_panel(surf, (65, 47, 350, 177))
+        u.text(surf, "FIREFLY RHYTHM  %ds" % self.time_left, (240, 60), INK, anchor="midtop")
+        u.text(surf, self.message, (240, 84), INK, anchor="midtop")
+        surf.fill(CREAM_DK, (96, 119, 288, 40)); surf.fill(GOLD, (223, 119, 34, 40))
+        pygame.draw.circle(surf, INK, (int(self.light_x), 139), 8)
+        pygame.draw.circle(surf, WHITE, (int(self.light_x), 139), 4)
+        u.text(surf, "CLICK / SPACE   SCORE %d" % self.score, (240, 179), INK, anchor="midtop")
+        u.text(surf, "PRACTICE - NO REWARDS" if not self.paid_round else "MISS: -1 POINT. TIMING BEATS SPAM.", (240, 202), INK, anchor="midtop")

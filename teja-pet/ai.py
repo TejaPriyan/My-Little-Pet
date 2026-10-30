@@ -6,6 +6,8 @@ behaviour; the Pet only holds data/animation and the Game only forwards input.
 """
 import math
 import random
+from economy import meal
+from playful import ToyMotion
 from enum import Enum, auto
 
 from config import (WALK_SPEED, RUN_SPEED, WALK_FPS, RUN_FPS, EXPLORE_DISTANCE, FEED_HUNGER,
@@ -74,6 +76,7 @@ class Brain:
         self.mouse = None
         # play state
         self.ball_anim = None
+        self.toy_motion = None
         self.ball_cd = 0.0
         self.crumb_cd = 0.0
         self.zcd = 0.0
@@ -91,6 +94,7 @@ class Brain:
     def _enter(self, state, dur=0.0):
         old = self.state
         if old == State.PLAY and state != State.PLAY:
+            self.toy_motion = None
             self._throw_ball(self.world.toy_home)
         self.state, self.t, self.dur, self.phase = state, 0.0, dur, None
         if state == State.HAPPY:
@@ -237,6 +241,12 @@ class Brain:
         self.pending = None
         p, w = self.pet, self.world
         self.path, self.auto = [], False
+        # Explicit care takes the necessary item back out of storage.
+        item = {'feed': 'food', 'drink': 'water', 'play': 'toy'}.get(cmd)
+        if item in getattr(p, 'room_hidden', []):
+            p.room_hidden.remove(item)
+            from decorating import apply_layout
+            apply_layout(w, p)
         if cmd == "feed":
             w.bowl_full, w.bowl_timer = True, 30.0
             self._walk_to(w.anchors["food"], "eat")
@@ -465,7 +475,7 @@ class Brain:
         if self.crumb_cd <= 0:
             sign = 1 if p.facing == "right" else -1
             if self.eat_which == "food":
-                self.fx.crumbs(p.x + 11 * sign, p.y - 7)
+                self.fx.crumbs(p.x + 11 * sign, p.y - 7, p.selected_food)
             else:
                 self.fx.sparkles(p.x + 11 * sign, p.y - 6, 1, 3)
             self.emit("munch")
@@ -477,13 +487,7 @@ class Brain:
         p = self.pet
         if self.eat_which == "food":
             p.stats["total_feeds"] += 1
-            gain = FEED_HUNGER
-            if p.inventory.get("treat", 0) > 0:
-                p.inventory["treat"] -= 1
-                gain += TREAT_BONUS
-                self.fx.text(p.x, p.y - 56, "TREAT!", GOLD)
-            p.hunger = min(100, p.hunger + gain)
-            p.happiness = min(100, p.happiness + FEED_HAPPY)
+            gain = meal(p)
             self.fx.text(p.x, p.y - 34, "HUNGER +%d" % gain, C_HUNGER)
             self.world.bowl_full = False
             self._say("yum", 2.2)
@@ -521,22 +525,35 @@ class Brain:
         if auto is not None:
             self.auto = auto
         self.pet.facing = "right"
-        self._enter(State.PLAY, 5.6)
+        self._enter(State.PLAY, 10.0)
+        self.ball_anim = None
+        self.toy_motion = ToyMotion(self.pet.selected_toy, (35, 160, 445, 231), self.world.toy, self.rng)
+        self.toy_route_cd = 0
+        self.path = []
         self.ball_cd = 0.3
         self.emit("play_start")
 
     def _u_play(self, dt):
         p, w = self.pet, self.world
-        if not self.ball_anim:
-            self.ball_cd -= dt
-            if self.ball_cd <= 0:
-                tx = max(250, min(345, w.toy[0] + self.rng.uniform(-50, 50)))
-                ty = max(206, min(234, w.toy[1] + self.rng.uniform(-14, 14)))
-                self._throw_ball((tx, ty))
-                self.emit("bounce")
+        self.ball_cd -= dt
+        if self.toy_motion:
+            m = self.toy_motion
+            m.update(dt)
+            free = w.nearest_free(m.x, m.y)
+            if free: w.toy[:] = free
+            w.toy_z = m.z
+            if math.hypot(p.x-w.toy[0], p.y-w.toy[1]) < 30 and self.ball_cd <= 0:
+                m.bat(); self.ball_cd = 1.2; self.emit('bounce')
         # chase: stay just left or right of the ball and hop along
         side = -18 if p.x <= w.toy[0] else 18
-        gx, gy = w.toy[0] + side, w.toy[1] + 4
+        self.toy_route_cd -= dt
+        if self.toy_route_cd <= 0:
+            self.toy_route_cd = .6
+            goal = w.nearest_free(w.toy[0] + side, w.toy[1] + 4)
+            self.path = w.find_path((p.x,p.y),goal) if goal else []
+        while self.path and math.dist((p.x,p.y),self.path[0]) < 3:
+            self.path.pop(0)
+        gx, gy = self.path[0] if self.path else (p.x,p.y)
         dx, dy = gx - p.x, gy - p.y
         d = math.hypot(dx, dy)
         if d > 4:
@@ -576,7 +593,7 @@ class Brain:
         self._enter(State.SLEEP)
         self.phase = "hop_on"
         self.hop = {"a": (p.x, p.y), "b": self.world.anchors["bed_spot"], "t": 0.0, "d": 0.7, "h": 10}
-        p.on_bed = True
+        p.on_bed = self.world.bed.visible
         p.facing = "down"
         self.emit("hop")
 
@@ -672,6 +689,9 @@ class Brain:
         self._auto_walk(self.world.anchors["bed_approach"], "sleep")
 
     def _auto_play(self):
+        if not self.world.toy_visible:
+            self._start_sit()
+            return
         stand = self.world.toy_stand()
         if stand:
             self.auto = True
@@ -680,7 +700,9 @@ class Brain:
             self._to_idle()
 
     def _auto_explore(self):
-        name = self.rng.choice(list(self.world.landmarks))
+        names = [name for name in self.world.landmarks if getattr(getattr(self.world, name, None), 'visible', True)]
+        if not names: return self._start_wander()
+        name = self.rng.choice(names)
         self.visit_name = name
         self._auto_walk(self.world.landmarks[name][0], "visit")
 

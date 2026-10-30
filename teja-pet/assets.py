@@ -83,6 +83,11 @@ class Assets:
 
         self.room = self._get("environment/room.png", opaque=True)
         self.bed = self._get("environment/bed.png")
+        from supplies import food_frames, toy_image, decor_image, TOYS
+        from config import FOODS
+        self.meals = {k: food_frames(k) for k in FOODS}
+        self.toys = {k: toy_image(k) for k in TOYS}
+        self.extra_decor = {k: decor_image(k) for k in ("flowers", "lamp", "books")}
         self.food = self._get("environment/food.png")
         self.water = self._get("environment/water.png")
         self.toy = self._get("environment/toy.png")
@@ -112,6 +117,13 @@ class Assets:
         self.accessories = {n: self._get("sprites/accessories/%s.png" % n)
                             for n in sprites.ACCESSORY_ART}
         self._scaled = {}
+        self._room_styles = {}
+
+    def room_style(self, key):
+        if key not in self._room_styles:
+            from rooms import style
+            self._room_styles[key] = style(self, key)
+        return self._room_styles[key]
 
     # ------------------------------------------------------------------ pets
     def pet_clips(self, species, coat=0):

@@ -3,10 +3,13 @@
 .runtime/
 .build-tools/
 node_modules/
+private-releases/
 __pycache__/
 *.py[cod]
 .pytest_cache/
 packaging/build/
+packaging/build-plus/
+packaging/build-desktop/
 release/
 review-temp/
 review-shots/
@@ -28,5 +31,19 @@ teja-pet/save/
 .DS_Store
 Thumbs.db
 
-# Public deployment output
-public-site/
+# Local desktop behaviour preview build
+/release-desktop/
+
+/release-room/
+/release-quality/
+/release-store/
+/packaging/build-store/
+/packaging/store-identity.local.json
+
+# Generated public showcase artifact
+/public-site/
+/public-site-*/
+/littlepet-in-showcase*.zip
+
+/release-free/
+/packaging/build-free/

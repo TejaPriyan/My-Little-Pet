@@ -1,4 +1,4 @@
-"""Procedural chibi pet art: one shared rig, four species, several coats.
+"""Original pixel pet art: seven species, three coats and expressive poses.
 
 Every pose is described as data (a small dict), rendered by a species "rig"
 and finished with a clean 1-px silhouette outline. Because poses are data we
@@ -65,6 +65,30 @@ COATS = {
                         accent=(50, 44, 68), inner=(202, 162, 202), cheek=(232, 142, 182),
                         nose=(36, 30, 46))),
     ],
+    "dino": [
+        ("FERN", dict(body=(128, 204, 139), shade=(85, 160, 106), belly=(236, 243, 188),
+                      accent=(63, 129, 104), inner=(255, 185, 137), cheek=(248, 159, 142), nose=(59, 100, 77))),
+        ("LAGOON", dict(body=(111, 204, 209), shade=(65, 160, 174), belly=(222, 248, 215),
+                        accent=(71, 113, 168), inner=(255, 204, 135), cheek=(249, 159, 163), nose=(48, 101, 123))),
+        ("BERRY", dict(body=(204, 148, 206), shade=(165, 103, 176), belly=(255, 229, 199),
+                       accent=(120, 80, 148), inner=(250, 180, 131), cheek=(255, 145, 164), nose=(106, 64, 126))),
+    ],
+    "tiger": [
+        ("AMBER", dict(body=(251, 174, 75), shade=(222, 130, 49), belly=(255, 246, 216),
+                       accent=(83, 52, 51), inner=(252, 192, 167), cheek=(255, 141, 140), nose=(129, 73, 81))),
+        ("FROST", dict(body=(238, 244, 250), shade=(190, 208, 224), belly=(255, 253, 244),
+                       accent=(91, 112, 138), inner=(244, 185, 208), cheek=(246, 159, 188), nose=(135, 89, 116))),
+        ("ROSE", dict(body=(244, 174, 183), shade=(212, 130, 155), belly=(255, 241, 219),
+                      accent=(123, 72, 107), inner=(253, 213, 186), cheek=(255, 143, 159), nose=(137, 77, 100))),
+    ],
+    "parrot": [
+        ("TROPICAL", dict(body=(113, 207, 157), shade=(66, 165, 137), belly=(254, 225, 126),
+                          accent=(70, 138, 216), inner=(251, 171, 79), cheek=(255, 166, 149), nose=(248, 190, 69))),
+        ("SCARLET", dict(body=(241, 124, 114), shade=(202, 78, 99), belly=(255, 220, 112),
+                         accent=(87, 147, 216), inner=(253, 169, 88), cheek=(255, 186, 167), nose=(244, 193, 83))),
+        ("BLUEBELL", dict(body=(127, 182, 235), shade=(82, 133, 198), belly=(238, 241, 185),
+                          accent=(130, 109, 194), inner=(253, 183, 103), cheek=(255, 174, 194), nose=(246, 199, 85))),
+    ],
 }
 
 # name -> (fps, has_blink_variants)
@@ -73,7 +97,7 @@ PET_CLIPS = {
     "walk_left": (8.0, False), "walk_right": (8.0, False), "sit": (2.5, True),
     "sleep": (1.4, False), "eat": (5.0, False), "happy": (8.0, False),
     "sad": (2.0, False), "play": (7.0, False), "dangle": (5.0, False),
-    "stretch": (3.0, False),
+    "stretch": (3.0, False), "dance": (7.0, False), "wave": (6.0, False),
 }
 
 
@@ -196,6 +220,18 @@ class Rig:
 
     def marks_back(self, s, p, hy):
         pass
+
+    def body_details(self, s, p, dy, tail, back):
+        pass
+
+    def hands(self, s, p, hy, left, right):
+        """Small lifted paws are only drawn in gestures; ordinary poses stay intact."""
+        for x, lift in ((2, left), (18, right)):
+            if lift:
+                y = hy + 12 - lift
+                _ell(s, OUT, (x, y, 4, 5))
+                _ell(s, p["body"], (x, y, 4, 4))
+                _ell(s, p[self.paw], (x + 1, y, 2, 2))
 
     def face(self, s, p, hy, mouth):
         s.fill(p["nose"], (11, hy + 8, 2, 1))
@@ -490,12 +526,202 @@ class Fox(Rig):
         _ell(s, p["belly"], (4 + t, 16, 6, 5))
 
 
-RIGS = {"cat": Cat(), "dog": Dog(), "bunny": Bunny(), "fox": Fox()}
+class Dino(Rig):
+    """Round baby dinosaur with a broad muzzle, scalloped crest and heavy tail."""
+    head_y = 4
+    paw = "shade"
+
+    def ears(self, s, p, hy, droop, back):
+        for x, height in ((7, 2), (11, 3), (15, 2)):
+            pygame.draw.polygon(s, p["accent"], [(x - 2, hy + 2), (x, hy - height), (x + 2, hy + 2)])
+
+    def marks(self, s, p, hy):
+        _ell(s, p["belly"], (5, hy + 6, 14, 6))
+        for x in (6, 16):
+            s.fill(p["shade"], (x, hy + 3, 2, 1))
+
+    def face(self, s, p, hy, mouth):
+        for x in (9, 14):
+            s.set_at((x, hy + 8), p["nose"])
+        _mouth(s, hy + 9, mouth, p)
+        if mouth == "open":
+            s.set_at((10, hy + 9), WHITE)
+            s.set_at((13, hy + 9), WHITE)
+
+    def marks_back(self, s, p, hy):
+        for y in range(hy + 2, hy + 11, 3):
+            _ell(s, p["accent"], (10, y, 4, 3))
+
+    def tail(self, s, p, dy, t):
+        pygame.draw.polygon(s, p["shade"], [(14, 17 + dy), (21, 17 + dy), (22, 12 + dy + t), (23, 18 + dy), (19, 21 + dy), (14, 21 + dy)])
+        pygame.draw.polygon(s, p["body"], [(15, 17 + dy), (20, 18 + dy), (22, 14 + dy + t), (21, 19 + dy), (16, 20 + dy)])
+
+    def tail_sit(self, s, p, t):
+        self.tail(s, p, 0, t)
+
+    def tail_back(self, s, p, dy, t):
+        pygame.draw.polygon(s, p["body"], [(9, 15 + dy), (14, 15 + dy), (16 + t, 21), (12, 22), (9, 20)])
+        s.fill(p["accent"], (11, 16 + dy, 2, 4))
+
+    def ears_side(self, s, p, hy, droop):
+        for x, y in ((10, hy), (13, hy - 1), (16, hy - 1)):
+            pygame.draw.polygon(s, p["accent"], [(x - 1, y + 3), (x, y - 2), (x + 2, y + 2)])
+
+    def snout_side(self, s, p, hy, mouth):
+        _ell(s, p["belly"], (16, hy + 6, 8, 5))
+        s.set_at((21, hy + 6), p["nose"])
+        s.fill(EYE, (20, hy + 9, 3, 1))
+        if mouth == "open":
+            s.set_at((21, hy + 10), WHITE)
+
+    def tail_side(self, s, p, dy, t):
+        pygame.draw.polygon(s, p["shade"], [(8, 14 + dy), (3, 15 + dy), (1, 10 + dy + t), (0, 17 + dy), (4, 21 + dy), (10, 20 + dy)])
+        pygame.draw.polygon(s, p["body"], [(8, 15 + dy), (4, 17 + dy), (1, 12 + dy + t), (2, 18 + dy), (7, 20 + dy)])
+
+    def ears_sleep(self, s, p, hy):
+        for x in (3, 7, 11):
+            pygame.draw.polygon(s, p["accent"], [(x - 1, hy + 2), (x, hy - 2), (x + 2, hy + 2)])
+
+    def tail_sleep(self, s, p, t):
+        pygame.draw.polygon(s, p["body"], [(10, 19), (18, 19), (22, 15 - t), (22, 21), (13, 22)])
+
+
+class Tiger(Cat):
+    """Rounded ears and broad stripes distinguish a tiger from the pointy cat."""
+    def ears(self, s, p, hy, droop, back):
+        for x in (2, 16):
+            _ell(s, p["accent"], (x, hy - 1, 6, 6))
+            _ell(s, p["body"], (x + 1, hy, 4, 4))
+            if not back:
+                _ell(s, p["inner"], (x + 2, hy + 1, 2, 2))
+
+    def marks(self, s, p, hy):
+        _ell(s, p["belly"], (6, hy + 7, 12, 6))
+        for x, width, height in ((8, 2, 3), (11, 2, 2), (14, 2, 3)):
+            s.fill(p["accent"], (x, hy + 1, width, height))
+        for y in (hy + 5, hy + 8):
+            s.fill(p["accent"], (3, y, 3, 1))
+            s.fill(p["accent"], (18, y, 3, 1))
+
+    def marks_back(self, s, p, hy):
+        for x in (5, 10, 16):
+            s.fill(p["accent"], (x, hy + 2, 2, 4))
+        for x in (4, 17):
+            s.fill(p["accent"], (x, hy + 8, 3, 2))
+
+    def body_details(self, s, p, dy, tail, back):
+        for x in (6, 16):
+            s.fill(p["accent"], (x, 17 + dy, 2, 1))
+
+    def tail(self, s, p, dy, t):
+        super().tail(s, p, dy, t)
+        for x, y in ((19 + t, 13 + dy), (18, 16 + dy)):
+            s.fill(p["accent"], (x, y, 2, 1))
+
+    def ears_side(self, s, p, hy, droop):
+        for x, y in ((17, hy - 1), (10, hy)):
+            _ell(s, p["accent"], (x, y, 5, 5))
+            _ell(s, p["inner"], (x + 1, y + 1, 3, 3))
+
+    def ears_side_over(self, s, p, hy, droop):
+        for x in (10, 13):
+            s.fill(p["accent"], (x, hy + 3, 2, 3))
+
+    def snout_side(self, s, p, hy, mouth):
+        _ell(s, p["belly"], (17, hy + 6, 6, 5))
+        super().snout_side(s, p, hy, mouth)
+
+    def ears_sleep(self, s, p, hy):
+        for x in (1, 9):
+            _ell(s, p["accent"], (x, hy - 2, 5, 5))
+            _ell(s, p["inner"], (x + 1, hy - 1, 3, 3))
+
+    def ears_sleep_over(self, s, p, hy):
+        for x in (4, 8):
+            s.fill(p["accent"], (x, hy + 1, 1, 3))
+
+
+class Parrot(Rig):
+    """Feathered crest, curved beak, folded wings and a three-feather tail."""
+    head_y = 4
+    paw = "nose"
+
+    def ears(self, s, p, hy, droop, back):
+        for x, y in ((9, hy - 2), (12, hy - 3), (15, hy - 1)):
+            _ell(s, p["accent"], (x - 1, y, 3, 5))
+
+    def marks(self, s, p, hy):
+        for x in (5, 13):
+            _ell(s, p["belly"], (x, hy + 4, 6, 7))
+
+    def marks_back(self, s, p, hy):
+        for x in (7, 11, 15):
+            s.fill(p["shade"], (x, hy + 6, 1, 4))
+
+    def face(self, s, p, hy, mouth):
+        pygame.draw.polygon(s, p["nose"], [(10, hy + 7), (13, hy + 7), (14, hy + 9), (11, hy + 11), (10, hy + 9)])
+        s.fill(p["inner"], (10, hy + 9, 3, 1))
+        if mouth == "open":
+            s.fill(EYE, (11, hy + 10, 2, 1))
+
+    def body_details(self, s, p, dy, tail, back):
+        for x in (4, 15):
+            _ell(s, p["accent"], (x, 13 + dy, 5, 7))
+            s.fill(p["shade"], (x + 1, 17 + dy, 1, 2))
+
+    def hands(self, s, p, hy, left, right):
+        for x, lift in ((0, left), (19, right)):
+            if lift:
+                y = hy + 12 - lift
+                _ell(s, p["accent"], (x, y, 5, 6))
+                for px in range(x + 1, x + 4, 2):
+                    s.fill(p["body"], (px, y + 1, 1, 3))
+
+    def tail(self, s, p, dy, t):
+        for x, y in ((16, 14), (19, 13), (21, 12)):
+            pygame.draw.line(s, p["accent"], (15, 17 + dy), (x, y + dy + t), 2)
+
+    def tail_sit(self, s, p, t):
+        self.tail(s, p, 0, t)
+
+    def tail_back(self, s, p, dy, t):
+        for x in (9, 12, 15):
+            pygame.draw.line(s, p["accent"], (12, 16 + dy), (x + t, 22), 2)
+
+    def ears_side(self, s, p, hy, droop):
+        for x, y in ((12, hy - 2), (15, hy - 3), (18, hy - 2)):
+            _ell(s, p["accent"], (x, y, 3, 5))
+
+    def ears_side_over(self, s, p, hy, droop):
+        _ell(s, p["belly"], (15, hy + 3, 7, 7))
+        _ell(s, p["accent"], (5, 14, 8, 6))
+
+    def snout_side(self, s, p, hy, mouth):
+        pygame.draw.polygon(s, p["nose"], [(20, hy + 5), (23, hy + 6), (23, hy + 9), (21, hy + 10), (22, hy + 7)])
+        if mouth == "open":
+            s.set_at((22, hy + 9), EYE)
+
+    def tail_side(self, s, p, dy, t):
+        for y in (16, 18, 20):
+            pygame.draw.line(s, p["accent"], (8, 16 + dy), (0, y + dy + t), 2)
+
+    def ears_sleep(self, s, p, hy):
+        for x in (4, 7, 10):
+            _ell(s, p["accent"], (x, hy - 2, 3, 4))
+
+    def tail_sleep(self, s, p, t):
+        _ell(s, p["accent"], (13, 15, 9, 5))
+        for x in (16, 19):
+            s.fill(p["body"], (x, 16, 1, 3))
+
+
+RIGS = {"cat": Cat(), "dog": Dog(), "bunny": Bunny(), "fox": Fox(),
+        "dino": Dino(), "tiger": Tiger(), "parrot": Parrot()}
 
 
 # ================================================================= views
 def _front(rig, p, dy=0, squash=0, lf=0, rf=0, tail=0, eyes="open", mouth="smile",
-           sit=False, droop=False, back=False, tear=False, **_):
+           sit=False, droop=False, back=False, tear=False, arm_l=0, arm_r=0, **_):
     s = _s()
     hy = rig.head_y + dy + squash
     if not back and not sit:
@@ -511,6 +737,7 @@ def _front(rig, p, dy=0, squash=0, lf=0, rf=0, tail=0, eyes="open", mouth="smile
         _ell(s, pk, (x, 19 - lift, 4, 3))
     if not back:
         _ell(s, p["belly"], (8, 15 + dy, 8, 5))
+    rig.body_details(s, p, dy, tail, back)
     if sit:
         rig.tail_sit(s, p, tail)
     _blob(s, p, (3, hy, 18, rig.head_h - squash), lip=True)
@@ -526,6 +753,7 @@ def _front(rig, p, dy=0, squash=0, lf=0, rf=0, tail=0, eyes="open", mouth="smile
     s.fill(p["cheek"], (5, ey + 3, 2, 1))
     s.fill(p["cheek"], (17, ey + 3, 2, 1))
     rig.face(s, p, hy, mouth)
+    rig.hands(s, p, hy, arm_l, arm_r)
     _outline(s)
     rig.post_front(s, p, hy)
     if tear:
@@ -611,6 +839,18 @@ def poses(clip):
     if clip == "happy":
         return [dict(view="front", squash=1 if i == 0 else 0, eyes="happy", mouth="open",
                      tail=(-1, 1, -1, 1)[i], shift=(0, -j)) for i, j in enumerate((0, 2, 3, 1))]
+    if clip == "dance":
+        return [dict(view="front", squash=q, eyes="happy", mouth="open", tail=tail,
+                     arm_l=al, arm_r=ar, lf=lf, rf=rf, shift=(0, -jump))
+                for q, tail, al, ar, lf, rf, jump in (
+                    (1, -1, 2, 5, 0, 1, 0), (0, -1, 3, 6, 0, 2, 1),
+                    (0, 0, 5, 5, 0, 0, 2), (1, 1, 5, 2, 1, 0, 0),
+                    (0, 1, 6, 3, 2, 0, 1), (0, 0, 5, 5, 0, 0, 2),
+                    (1, -1, 3, 3, 1, 0, 0), (0, 1, 5, 5, 0, 1, 1))]
+    if clip == "wave":
+        return [dict(view="front", eyes=eyes, arm_r=lift, tail=tail, mouth="smile")
+                for lift, tail, eyes in ((3, -1, "open"), (6, 0, "happy"),
+                                         (4, 1, "happy"), (6, 0, "open"))]
     if clip == "sad":
         return [dict(view="front", squash=1, eyes="sad", mouth="frown", droop=True, tear=(i == 1))
                 for i in range(2)]
@@ -646,12 +886,13 @@ def anchor(species, pose):
     if v == "front":
         x, y = 12, rig.head_y + pose.get("dy", 0) + pose.get("squash", 0)
     elif v == "side":
-        x, y = 16, rig.head_y + pose.get("dy", 0) + pose.get("dip", 0)
-        if pose.get("flip"):
-            x = FRAME - x
+        x, y = 16, rig.head_y + pose.get("dy", 0) + pose.get("dip", 0) + pose.get("squash", 0)
     else:
         x, y = 7, 8 + pose.get("br", 0)
-    return (x + sx, y + sy)
+    x, y = x + sx, y + sy
+    if pose.get("flip"):
+        x = FRAME - 1 - x
+    return (x, y)
 
 
 def make_clip(species, clip):

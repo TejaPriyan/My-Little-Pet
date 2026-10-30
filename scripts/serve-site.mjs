@@ -1,0 +1,6 @@
+import http from 'node:http';
+import {readFile,stat} from 'node:fs/promises';
+import path from 'node:path';
+const root=path.resolve(import.meta.dirname,'../my-little-pet-site/dist'),port=Number(process.env.PORT||4176);
+const types={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.json':'application/json','.webmanifest':'application/manifest+json','.png':'image/png','.gif':'image/gif','.svg':'image/svg+xml','.exe':'application/octet-stream','.txt':'text/plain'};
+http.createServer(async(req,res)=>{try{const u=new URL(req.url,'http://localhost'),name=decodeURIComponent(u.pathname),file=path.resolve(root,'.'+name);if(!file.startsWith(root+path.sep)&&file!==root){res.writeHead(403).end();return}let target=file;if((await stat(file)).isDirectory())target=path.join(file,'index.html');const bytes=await readFile(target);res.writeHead(200,{'Content-Type':types[path.extname(target)]||'application/octet-stream','Cache-Control':'no-cache'});res.end(req.method==='HEAD'?undefined:bytes)}catch{res.writeHead(404,{'Content-Type':'text/plain'}).end('Page not found')}}).listen(port,'127.0.0.1',()=>console.log(`Free website: http://localhost:${port}/\nFree mobile room: http://localhost:${port}/app/`));

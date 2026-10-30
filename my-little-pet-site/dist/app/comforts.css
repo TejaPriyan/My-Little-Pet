@@ -1,0 +1,15 @@
+body.landscape .pet-room[data-pet-size=small] .pet-touch,body.landscape .pet-room[data-pet-size=small] .room-friends button{width:5%}
+body.landscape .pet-room[data-pet-size=large] .pet-touch,body.landscape .pet-room[data-pet-size=large] .room-friends button{width:10%}
+.pet-room[data-night=true]:after{content:'';position:absolute;inset:0;background:#1a154a55;pointer-events:none;z-index:120}
+.room-weather{position:absolute;inset:0;pointer-events:none;z-index:119;overflow:hidden;display:none}
+[data-weather=rain] .room-weather,[data-weather=snow] .room-weather{display:block}
+.room-weather span{position:absolute;top:-10%;width:2px;height:12px;background:#c4eaff99;animation:pet-rain 1.2s linear infinite}
+[data-weather=snow] .room-weather span{width:4px;height:4px;background:#fff;border-radius:50%;animation-duration:4s}
+[data-still=true] .room-weather span{animation-play-state:paused}
+@keyframes pet-rain{to{transform:translate(-15px,420px)}}
+@media(prefers-reduced-motion:reduce){.room-weather span{animation:none;top:20%}}
+@media(orientation:portrait){body.landscape:has(#room-panel:not([hidden])){overflow:auto}body.landscape .pet-room,body.landscape .pet-room.has-family{width:100%;min-height:180px!important}body.landscape .room-tools{flex-wrap:wrap}body.landscape .room-controls{flex-wrap:wrap}body.landscape .app-shell{padding-bottom:85px}}
+
+#catch-dialog{width:min(600px,95vw)}#catch-dialog canvas{display:block;width:100%;image-rendering:pixelated;touch-action:none;border-radius:12px;background:#f0eadb}#catch-dialog h2{margin:0 32px 12px 0}#catch-dialog p{font-size:14px;line-height:1.5}@media(orientation:landscape) and (max-height:500px){#catch-dialog{width:min(560px,95vw);padding:12px}#catch-dialog canvas{max-height:52dvh;width:auto;max-width:100%;margin:auto}}
+
+@media(orientation:portrait){body.landscape .pet-room .pet-touch,body.landscape .pet-room .room-friends button{width:10%!important}body.landscape .pet-room[data-pet-size=small] .pet-touch,body.landscape .pet-room[data-pet-size=small] .room-friends button{width:7%!important}body.landscape .pet-room[data-pet-size=large] .pet-touch,body.landscape .pet-room[data-pet-size=large] .room-friends button{width:14%!important}}

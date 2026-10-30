@@ -30,11 +30,11 @@ jobs:
           node-version: '22'
       - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
         id: pages
-      - name: Prepare public showcase only
+      - name: Prepare free website, mobile room and downloads
         env:
           PUBLIC_SITE_URL: ${{ steps.pages.outputs.base_url }}
         run: node scripts/prepare-public-site.mjs
-      - name: Validate public showcase
+      - name: Validate free release
         run: node my-little-pet-site/tests/public-release.test.mjs
       - name: Upload the actual website
         uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3

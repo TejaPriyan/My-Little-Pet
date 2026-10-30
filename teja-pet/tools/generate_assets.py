@@ -1,4 +1,4 @@
-"""Export TEJA PET's procedural placeholder art and sounds as real files.
+"""Export My Little Pet's original pixel artwork and synthesized sounds.
 
     python tools/generate_assets.py
 

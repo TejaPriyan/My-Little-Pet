@@ -9,7 +9,7 @@ import pygame
 
 from config import (W, H, HUD_H, BAR_Y, INK, CREAM, CREAM_DK, PINK, GOLD, WHITE, BAR_BG,
                     C_HAPPY, C_HUNGER, C_ENERGY, C_XP, SHOP_ITEMS, ACHIEVEMENTS)
-from settings import FPS_OPTIONS, TIME_MODES
+from settings import FPS_OPTIONS, TIME_MODES, PET_SIZES
 from utils import LRUCache
 
 RED = (255, 84, 84)
@@ -375,7 +375,7 @@ class NameScreen:
 
 
 class SettingsMenu:
-    ROW_H = 13
+    ROW_H = 12
 
     def __init__(self, ui, settings, on_change, on_reset, on_close):
         self.ui, self.s = ui, settings
@@ -385,10 +385,10 @@ class SettingsMenu:
         self.modal = True
         self.rect = pygame.Rect(100, 16, 280, 238)
         self.rows = ["SOUND", "MUSIC", "VOLUME", "FPS", "FULLSCREEN", "TIME OF DAY",
-                     "RESET PET", "DESKTOP SIZE", "VOICE", "QUIET", "WEATHER", "DESKTOP", "HELP", "OWNER + PET NAMES", "CLOSE"]
+                     "RESET PET", "DESKTOP PET SIZE", "VOICE", "QUIET", "WEATHER", "DESKTOP", "HELP", "OWNER + PET NAMES", "BUY ME A COFFEE", "CLOSE"]
 
     def _row_rect(self, i):
-        return pygame.Rect(self.rect.x + 8, self.rect.y + 28 + i * self.ROW_H, self.rect.w - 16, 15)
+        return pygame.Rect(self.rect.x + 8, self.rect.y + 28 + i * self.ROW_H, self.rect.w - 16, self.ROW_H)
 
     def update(self, dt, mouse):
         self.mouse = mouse
@@ -401,7 +401,7 @@ class SettingsMenu:
         s = self.s
         return [("ON" if s.sound else "OFF"), ("ON" if s.music else "OFF"), "%d%%" % s.volume,
                 str(s.fps), ("ON" if s.fullscreen else "OFF"), s.time_mode.upper(), "",
-                "%dX" % s.pet_scale, "ON" if s.voice else "OFF", "ON" if s.quiet else "OFF",
+                PET_SIZES[s.pet_scale], "ON" if s.voice else "OFF", "ON" if s.quiet else "OFF",
                 s.weather.upper(), "ON" if s.desktop else "OFF", "", ""][i]
 
     def _adjust(self, i, d):
@@ -422,7 +422,8 @@ class SettingsMenu:
             self.on_reset()
             return
         elif i == 7:
-            s.pet_scale = (2, 3, 4)[((2, 3, 4).index(s.pet_scale) + d) % 3]
+            sizes = list(PET_SIZES)
+            s.pet_scale = sizes[(sizes.index(s.pet_scale) + d) % len(sizes)]
         elif i == 8:
             s.voice = not s.voice
         elif i == 9:
@@ -437,6 +438,11 @@ class SettingsMenu:
             return
         elif i == 13:
             if hasattr(self, "on_profile"): self.on_profile()
+            return
+        elif i == 14:
+            import webbrowser
+            webbrowser.open('https://buymeacoffee.com/tejapriyan')
+            self.ui.toast('OPTIONAL SUPPORT - EVERYTHING IS FREE')
             return
         else:
             self.on_close()

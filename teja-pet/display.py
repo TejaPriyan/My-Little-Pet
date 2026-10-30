@@ -5,8 +5,24 @@ Keeping this isolated means a borderless / transparent "desktop pet" mode can
 later be added here without touching any game logic.
 """
 import pygame
+import os
+import sys
 
 from config import W, H, START_SCALE, TITLE
+
+
+def configure_dpi_awareness():
+    """Keep source entry points sharp; frozen builds use windows.manifest."""
+    if os.name != "nt" or getattr(sys, "frozen", False):
+        return
+    import ctypes
+    try:
+        api = ctypes.WinDLL("user32", use_last_error=True)
+        api.SetProcessDpiAwarenessContext.argtypes = [ctypes.c_void_p]
+        api.SetProcessDpiAwarenessContext.restype = ctypes.c_bool
+        api.SetProcessDpiAwarenessContext(ctypes.c_void_p(-4))
+    except (AttributeError, OSError):
+        pass
 
 
 class DisplayManager:

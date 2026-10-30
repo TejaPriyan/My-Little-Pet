@@ -7,6 +7,7 @@ from config import SAVE_DIR, SETTINGS_PATH
 
 FPS_OPTIONS = (30, 60, 120)
 TIME_MODES = ("real", "fast", "day", "night")
+PET_SIZES = {2: "SMALL", 3: "MEDIUM", 4: "LARGE", 5: "EXTRA LARGE"}
 
 
 @dataclass
@@ -19,6 +20,7 @@ class Settings:
     time_mode: str = "real"     # real clock / fast cycle / forced day / forced night
     voice: bool = True
     quiet: bool = False
+    surprises: bool = True
     pet_scale: int = 3
     desktop: bool = False
     weather: str = "auto"
@@ -41,8 +43,9 @@ class Settings:
             s.time_mode = tm if tm in TIME_MODES else "real"
             s.voice = bool(raw.get("voice", True))
             s.quiet = bool(raw.get("quiet", False))
+            s.surprises = bool(raw.get("surprises", True))
             s.pet_scale = int(raw.get("pet_scale", 3))
-            if s.pet_scale not in (2, 3, 4):
+            if s.pet_scale not in PET_SIZES:
                 s.pet_scale = 3
             s.desktop = bool(raw.get("desktop", False))
             weather = raw.get("weather", "auto")

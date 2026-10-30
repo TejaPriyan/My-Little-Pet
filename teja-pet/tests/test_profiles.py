@@ -31,7 +31,7 @@ with tempfile.TemporaryDirectory(dir=ROOT / 'review-temp') as temp:
     g._save_profile('Luna','Sam')
     loaded = g.saves.load()
     assert loaded['pet_name'] == 'Luna' and loaded['owner_name'] == 'Sam'
-    assert loaded['coins'] == 345 and loaded['level'] == 4 and loaded['version'] == 4
+    assert loaded['coins'] == 345 and loaded['level'] == 4 and loaded['version'] == 6
     if os.name == 'nt':
         a, b = SingleInstance(temp), SingleInstance(temp)
         assert not a.already_running and b.already_running

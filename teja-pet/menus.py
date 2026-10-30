@@ -1,7 +1,7 @@
 """Shop, game picker, and a short keyboard/mouse tutorial."""
 import pygame
 import petart
-from activities import ROOMS, GOALS, refresh
+from activities import ROOMS, ROOM_PRICES, GOALS, refresh
 from config import SHOP_ITEMS, SPECIES, SPECIES_ORDER, ACCESSORIES, ACCESSORY_ORDER, INK, GOLD, WHITE, CREAM_DK
 from ui import GREY, RED
 
@@ -10,11 +10,11 @@ class ChoiceMenu:
     def __init__(self, ui, title, entries, on_select, on_close):
         self.ui, self.title, self.entries = ui, title, entries
         self.on_select, self.on_close = on_select, on_close
-        self.sel, self.mouse, self.modal = 0, None, True
+        self.sel, self.mouse, self.modal, self.page = 0, None, True, 0
         self.rect = pygame.Rect(65, 43, 350, 182)
 
     def row(self, i):
-        return pygame.Rect(self.rect.x + 12, self.rect.y + 40 + i * 35, self.rect.w - 24, 28)
+        return pygame.Rect(self.rect.x + 12, self.rect.y + 36 + i * 25, self.rect.w - 24, 23)
 
     def update(self, dt, mouse):
         self.mouse = mouse
@@ -24,11 +24,16 @@ class ChoiceMenu:
             self.on_close()
         elif ev.key in (pygame.K_UP, pygame.K_DOWN):
             self.sel = (self.sel + (1 if ev.key == pygame.K_DOWN else -1)) % len(self.entries)
+            self.page = self.sel // 5
         elif ev.key in (pygame.K_RETURN, pygame.K_KP_ENTER, pygame.K_SPACE):
             self.on_select(self.entries[self.sel][0])
 
     def on_click(self, pos):
-        for i, (key, _) in enumerate(self.entries):
+        if pygame.Rect(320, 209, 80, 13).collidepoint(pos) and len(self.entries) > 5:
+            self.page = (self.page + 1) % ((len(self.entries) + 4) // 5)
+            self.sel = self.page * 5
+            return
+        for i, (key, _) in enumerate(self.entries[self.page * 5:self.page * 5 + 5]):
             if self.row(i).collidepoint(pos):
                 self.on_select(key)
                 return
@@ -40,9 +45,10 @@ class ChoiceMenu:
         surf.blit(u.dim, (0, 0))
         u.draw_panel(surf, self.rect)
         u.text(surf, self.title, (240, self.rect.y + 12), INK, 2, WHITE, "midtop")
-        for i, (_, label) in enumerate(self.entries):
-            u.small_button(surf, self.row(i), label, bool(self.mouse and self.row(i).collidepoint(self.mouse)), self.sel == i)
+        for i, (_, label) in enumerate(self.entries[self.page * 5:self.page * 5 + 5]):
+            u.small_button(surf, self.row(i), label, bool(self.mouse and self.row(i).collidepoint(self.mouse)), self.sel == self.page * 5 + i)
         u.text(surf, "ARROWS / ENTER   ESC CLOSES", (240, self.rect.bottom - 14), GREY, anchor="midtop")
+        if len(self.entries) > 5: u.small_button(surf, (320, 209, 80, 13), "MORE >", False)
 
 
 class Tutorial:
@@ -66,9 +72,9 @@ class Tutorial:
         u.text(surf, "HELLO, LITTLE FRIEND!", (240, 44), INK, 2, WHITE, "midtop")
         lines = ["CLICK THE FLOOR TO WALK. ARROWS WORK TOO!", "F FEEDS   P PLAYS   E PETS   H GOES TO BED",
                  "G OPENS GAMES. B OPENS PETS, STYLE & SHOP.", "D SENDS YOUR PET ONTO THE WINDOWS DESKTOP.",
-                 "DRAG YOUR PET! RIGHT-CLICK FOR ITS MENU.", "CLICK THE HOUSE TO SLEEP / WAKE YOUR PET.",
-                 "ESC RETURNS TO THE ROOM. Q = QUIET MODE.", "DAILY: 3 FEEDS + 2 PLAYS + 1 GAME = 30 COINS.",
-                 "UNLOCK GARDEN / STAR ROOMS AT LEVEL 3 / 5."]
+                 "DRAG ITEMS. RIGHT-CLICK: FURNITURE / DECOR.", "V: MOVE ROOM ITEMS. DELETE: PUT AWAY.",
+                 "R: FAMILY   J: ADVENTURES   V: DECORATE", "DAILY CARE = 12 COINS. NO CLICK FARMING.",
+                 "3 ARCADE LIVES. 1 REFILLS EVERY 30 MIN."]
         for i, line in enumerate(lines): u.text(surf, line, (65, 74 + i * 14), INK)
         u.small_button(surf, (180, 209, 120, 20), "LET'S PLAY!", False)
 
@@ -135,6 +141,9 @@ class ShopMenu:
             return d["name"], "ONE HEAD ACCESSORY AT A TIME", tag, self.ui.assets.accessories[s]
         if key.startswith("room:"):
             s = key.split(":")[1]; name, level = ROOMS[s]
+            if s in ROOM_PRICES:
+                tag = ("ON" if p.room_theme == s else "SELECT") if s in p.owned_rooms else "%d C" % ROOM_PRICES[s]
+                return name, "WALLS + FLOOR + BED + DESKTOP HOUSE", tag, None
             return name, "UNLOCK AT LEVEL %d" % level, ("ON" if p.room_theme == s else "SELECT") if s in p.owned_rooms else "LOCKED", None
         if key == "coat": return "COAT: " + petart.COATS[p.species][p.coat][0], "CLICK TO CYCLE THREE FREE COLOURS", "FREE", p.frame()
         return "NO ACCESSORY", "TAKE OFF YOUR HAT", "SELECT", None
@@ -142,7 +151,7 @@ class ShopMenu:
     def draw(self, surf):
         u = self.ui
         surf.blit(u.dim, (0, 0)); u.draw_panel(surf, self.rect)
-        u.text(surf, "TEJA'S SHOP", (62, 25), INK, 2, WHITE)
+        u.text(surf, "LITTLE PET SHOP", (62, 25), INK, 2, WHITE)
         u.text(surf, "%d COINS" % self.pet.coins, (416, 28), GOLD, anchor="topright")
         for i, tab in enumerate(self.TABS): u.small_button(surf, self.tabs(i), tab, False, self.tab == i)
         for i, key in enumerate(self.keys[self.page * 5:self.page * 5 + 5]):

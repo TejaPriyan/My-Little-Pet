@@ -1,1 +1,2 @@
 614577c70e7474721afc5845e640e65a1638188c3124226ee5886dfbb150555b  MyLittlePet-1.1.0-Windows-Setup.exe
+f791f2d79ece64275f688cf2d71b9bf2aee2915ffffe390fe904e43307b9c49f  MyLittlePet-Plus-1.6.0-Windows-Setup.exe

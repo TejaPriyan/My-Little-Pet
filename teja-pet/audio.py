@@ -17,7 +17,7 @@ from config import ASSET_DIR
 
 SR = 22050
 SFX = ("walk", "eat", "happy", "sleep", "click", "levelup", "catch", "award",
-       "meow", "purr", "woof", "squeak", "yip", "coin", "pop")
+       "meow", "purr", "woof", "squeak", "yip", "chirrup", "roar", "chirp", "coin", "pop")
 
 
 # ------------------------------------------------------------------ synthesis
@@ -90,7 +90,32 @@ def _music():
 
 def synth(name):
     """Return 16-bit mono PCM bytes for a named sound."""
-    if name in ("meow", "woof", "squeak", "yip", "purr"):
+    if name in ("chirrup", "roar", "chirp"):
+        # Original, soft character voices. Integrated phase avoids sharp
+        # discontinuities as the pitch changes; a smooth envelope avoids clicks.
+        s = []
+        calls = {"chirrup": ((310, .24), (440, .16)),
+                 "roar": ((130, .48),), "chirp": ((1450, .12), (1900, .15), (1620, .10))}[name]
+        for index, (base, duration) in enumerate(calls):
+            phase = 0.0
+            for i in range(int(SR * duration)):
+                t = i / SR
+                u = t / duration
+                bend = .25 * math.sin(math.pi * u) - .12 * u
+                if name == "chirp":
+                    bend += .10 * math.sin(2 * math.pi * 18 * t)
+                phase += 2 * math.pi * base * (1 + bend) / SR
+                voice = math.sin(phase) + .18 * math.sin(phase * 2)
+                if name == "roar":
+                    voice += .12 * math.sin(phase * 3)
+                    voice *= .72 + .28 * math.sin(2 * math.pi * 27 * t)
+                elif name == "chirrup":
+                    voice *= .82 + .18 * math.sin(2 * math.pi * 12 * t)
+                envelope = math.sin(math.pi * u) ** 1.8
+                s.append(voice * envelope * .22)
+            if index < len(calls) - 1:
+                s += _silence(.055)
+    elif name in ("meow", "woof", "squeak", "yip", "purr"):
         base, duration = {"meow": (520, .42), "woof": (160, .22), "squeak": (1150, .18),
                           "yip": (740, .24), "purr": (85, .65)}[name]
         s = []

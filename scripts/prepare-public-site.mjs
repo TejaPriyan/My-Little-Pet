@@ -1,37 +1,23 @@
-// Package only the public showcase. Never publish dist/app or owner/payment files.
+// Build the free website, mobile room and approved Windows downloads.
 import {mkdir,readFile,writeFile,copyFile,readdir,lstat} from 'node:fs/promises';
 import path from 'node:path';
-const root=path.resolve(import.meta.dirname,'..'),src=path.join(root,'my-little-pet-site/dist');
-const out=path.join(root,'public-site');
-const siteUrl=(process.env.PUBLIC_SITE_URL||'https://littlepet.in').replace(/\/$/,'');
-const siteBase=new URL(siteUrl+'/');
-if(siteBase.protocol!=='https:')throw new Error('PUBLIC_SITE_URL must use HTTPS');
-const pages=['index.html','about.html','pricing.html','installation.html','coming-soon.html','contact.html','privacy.html','terms.html','refunds.html','delivery.html','guide.html'];
-// Refuse a dirty output directory rather than accidentally carrying old private files into a release.
-try {await mkdir(out);} catch(error) {
-  if(error.code!=='EEXIST')throw error;
-  const existing=await readdir(out);
-  if(existing.length)throw new Error('public-site already contains files. Archive it before rebuilding.');
+const root=path.resolve(import.meta.dirname,'..'),src=path.join(root,'my-little-pet-site/dist'),out=path.join(root,'public-site');
+const base=(process.env.PUBLIC_SITE_URL||'https://littlepet.in').replace(/\/$/,'');
+if(!/^https:\/\/[\w.-]+(?:\/[\w.-]+)*$/.test(base))throw new Error('Expected a public HTTPS site URL');
+try{await mkdir(out)}catch(e){if(e.code!=='EEXIST')throw e;if((await readdir(out)).length)throw new Error('Archive the existing public-site folder before rebuilding.')}
+const pages=['index.html','about.html','pricing.html','installation.html','contact.html','privacy.html','terms.html','refunds.html','delivery.html','guide.html'];
+const downloads=['MyLittlePet-1.1.0-Windows-Setup.exe','MyLittlePet-Plus-1.6.0-Windows-Setup.exe','release.json','SHA256SUMS.txt','THIRD-PARTY-NOTICES.txt'];
+let copied=0;
+async function copy(file){
+ const from=path.join(src,file),to=path.join(out,file),s=await lstat(from);
+ if(!s.isFile())throw new Error('Not a regular file: '+file);
+ await mkdir(path.dirname(to),{recursive:true});
+ if(/\.(html|xml|txt)$/.test(file))await writeFile(to,(await readFile(from,'utf8')).replaceAll('https://littlepet.in',base));else await copyFile(from,to);copied++;
 }
-async function copy(file){const from=path.join(src,file);if(!(await lstat(from)).isFile())throw new Error('Expected regular file: '+file);const dest=path.join(out,file);await mkdir(path.dirname(dest),{recursive:true});await copyFile(from,dest);}
-for(const file of [...pages,'style.css','plus.css','site.js','robots.txt','sitemap.xml','llms.txt','google2af4e1ed3191321d.html','downloads/release.json','downloads/SHA256SUMS.txt','downloads/THIRD-PARTY-NOTICES.txt'])await copy(file);
-// Assets explicitly referenced by public pages, plus the interactive pet greeting variants.
-const assets=new Set();
-for(const file of [...pages,'style.css','plus.css','site.js']){
-  const text=await readFile(path.join(src,file),'utf8');
-  for(const match of text.matchAll(/(?:["'(]|https:\/\/littlepet\.in\/)(assets\/[\w./-]+\.(?:png|gif|svg|ico|woff2?|ttf))/g))assets.add(match[1]);
-}
-for(const species of ['cat','dog','bunny','fox','dino','tiger','parrot']){assets.add(`assets/pets/${species}-0.png`);assets.add(`assets/pets/${species}-0-idle.gif`);}
-for(const asset of assets)await copy(asset);
-await mkdir(path.join(out,'app'));
-const notice=await readFile(path.join(out,'coming-soon.html'),'utf8');
-await writeFile(path.join(out,'app/index.html'),notice.replace('<head>','<head><base href="../">').replace('content="index,follow"','content="noindex,follow"'));
-await writeFile(path.join(out,'404.html'),notice.replace('<head>',`<head><base href="${siteUrl}/">`).replace('<title>Plus is coming soon','<title>Page not found').replace('<h1>Plus is coming soon</h1>','<h1>Page not found</h1>').replace('content="index,follow"','content="noindex,follow"'));
-// Keep canonical URLs, social images and the sitemap on the actual deployed host.
-for(const file of [...pages,'app/index.html','404.html','robots.txt','sitemap.xml','llms.txt']){
-  const dest=path.join(out,file);
-  await writeFile(dest,(await readFile(dest,'utf8')).replaceAll('https://littlepet.in',siteUrl));
-}
+async function tree(folder){for(const entry of await readdir(path.join(src,folder),{withFileTypes:true})){const file=folder+'/'+entry.name;if(entry.isSymbolicLink())throw new Error('Symlinks cannot be published');if(entry.isDirectory())await tree(file);else if(/\.(?:html|mjs|js|css|webmanifest|json|png|gif|svg|ico|woff2?|ttf)$/.test(file)&&!/(?:entitlement|payment|checkout|secret|\.env)/i.test(file))await copy(file);else throw new Error('Unexpected public asset: '+file)}}
+for(const file of [...pages,'style.css','plus.css','site.js','robots.txt','sitemap.xml','llms.txt','google2af4e1ed3191321d.html',...downloads.map(n=>'downloads/'+n)])await copy(file);
+await tree('assets');await tree('app');
+await writeFile(path.join(out,'404.html'),`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,follow"><title>Page not found — My Little Pet</title></head><body><h1>This little path ends here.</h1><p><a href="${base}/">Return to My Little Pet</a> or <a href="${base}/app/">open your free pet room</a>.</p></body></html>`);
 await writeFile(path.join(out,'.nojekyll'),'');
 await writeFile(path.join(out,'_headers'),'/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n  X-Frame-Options: DENY\n');
-console.log(`Public showcase prepared at ${out} (${pages.length} pages, ${assets.size} artwork files). No Plus game, API, keys, saves or installers included.`);
+console.log(`Prepared ${copied} public files, including the free mobile room and both Windows installers.`);

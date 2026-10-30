@@ -30,7 +30,7 @@ document.querySelectorAll('[data-species]').forEach(button=>button.addEventListe
   updateNames();
 }));
 ['#owner-name','#pet-name'].forEach(s=>$(s).addEventListener('input',updateNames));
-$('#preview-form').addEventListener('submit',e=>{e.preventDefault();updateNames();$('#name-speech').textContent+=' Your Plus room is coming soon.';});
+$('#preview-form').addEventListener('submit',e=>{e.preventDefault();updateNames();$('#name-speech').textContent+=' Your free Plus room is ready—open it below.';});
 let greetings=0;
 $('#hero-pet').addEventListener('click',()=>{const owner=clean($('#owner-name').value,'Friend');$('#hero-speech').textContent=['Purr… best break of the day. ♡','A little snack? Pretty please?','You make my little world happy.',`Hi ${owner}! You’re my person. ♡`][greetings++%4]});
 updateNames();

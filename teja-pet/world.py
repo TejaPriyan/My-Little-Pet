@@ -83,6 +83,7 @@ class Prop:
         self.layer = layer
         self.frame_index = 0
         self.sort_y = self.rect.bottom
+        self.visible = True
 
     def image(self, t):
         if self.fps and len(self.frames) > 1:
@@ -90,10 +91,10 @@ class Prop:
         return self.frames[self.frame_index % len(self.frames)]
 
     def draw(self, surf, t):
-        surf.blit(self.image(t), (self.x, self.y))
+        if self.visible: surf.blit(self.image(t), (self.x, self.y))
 
     def hit(self, pt):
-        if not self.rect.collidepoint(pt):
+        if not self.visible or not self.rect.collidepoint(pt):
             return False
         img = self.frames[0]
         try:
@@ -129,6 +130,8 @@ class World:
         self.toy_home = (292.0, 220.0)
         self.toy = [self.toy_home[0], self.toy_home[1]]
         self.toy_z = 0.0
+        self.toy_visible = True
+        self.extra_props = []
         self.bowl_full = False
         self.bowl_timer = 0.0
 
@@ -196,6 +199,7 @@ class World:
 
     # ---------------------------------------------------------------- navigation
     def _build_grid(self):
+        self.colliders = [p.collider for p in self.floor_props + getattr(self, "extra_props", []) if p.visible and p.collider]
         b = self.BOUNDS
         self.gw, self.gh = b.w // CELL + 1, b.h // CELL + 1
         self.blocked = [[not self.is_free(b.x + i * CELL, b.y + j * CELL, NAV_MARGIN)
@@ -305,7 +309,7 @@ class World:
         return pygame.Rect(int(self.toy[0]) - 6, int(self.toy[1]) - 6 - int(self.toy_z), 12, 12)
 
     def object_at(self, pt):
-        if self.toy_hit_rect().collidepoint(pt):
+        if self.toy_visible and self.toy_hit_rect().collidepoint(pt):
             return "toy"
         for p in self.clickable:
             if p.hit(pt):
@@ -354,8 +358,10 @@ class World:
             self.weather = mode
 
     # ---------------------------------------------------------------- drawing
-    def draw_background(self, surf, t, dn):
-        surf.blit(self.assets.room, (0, HUD_H))
+    def draw_background(self, surf, t, dn, theme="classic"):
+        style = self.assets.room_style(theme)
+        self.bed.frames = [style["bed"]]
+        surf.blit(style["room"], (0, HUD_H))
         self._draw_window(surf, t, dn)
         for p in (self.picture, self.clock, self.shelf, self.door):
             p.draw(surf, t)
@@ -453,22 +459,24 @@ class World:
 
     def draw_objects(self, surf, t, pet, assets):
         """Y-sorted drawing of furniture, toy and pet so depth looks right."""
-        items = [(p.sort_y, 0, p) for p in self.floor_props]
-        items.append((self.toy[1] + 5, 1, None))
+        items = [(p.sort_y, 0, p) for p in self.floor_props + self.extra_props if p.visible]
+        if self.toy_visible: items.append((self.toy[1] + 5, 1, None))
         if pet is not None:
-            items.append((pet.sort_y, 2, pet))
+            for member in pet if isinstance(pet, list) else [pet]:
+                items.append((member.sort_y, 2, member))
         for _, kind, obj in sorted(items, key=lambda i: (i[0], i[1])):
             if kind == 0:
                 obj.draw(surf, t)
             elif kind == 1:
                 self._draw_toy(surf, assets)
             else:
-                pet.draw(surf, assets)
+                obj.draw(surf, assets)
 
     def _draw_toy(self, surf, assets):
         x, y = int(self.toy[0]), int(self.toy[1])
         surf.blit(assets.shadow, (x - 8, y + 1), (0, 0, 16, 6))
-        surf.blit(assets.toy, (x - 5, y - 8 - int(self.toy_z)))
+        img = assets.toys.get(getattr(self, "active_toy", "ball"), assets.toys["ball"])
+        surf.blit(img, (x - 8, y - 12 - int(self.toy_z)))
 
     def _glow_sprite(self, col, r=7):
         key = (col, r)

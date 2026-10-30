@@ -1,6 +1,28 @@
 {
-  "platform": "Windows 10/11 x64",
+  "edition": "free",
   "version": "1.1.0",
+  "file": "MyLittlePet-1.1.0-Windows-Setup.exe",
+  "sizeMB": 16.1,
   "sha256": "614577c70e7474721afc5845e640e65a1638188c3124226ee5886dfbb150555b",
-  "sizeMB": 16.1
+  "free": true,
+  "downloads": [
+    {
+      "edition": "free",
+      "version": "1.1.0",
+      "file": "MyLittlePet-1.1.0-Windows-Setup.exe",
+      "sizeMB": 16.1,
+      "sha256": "614577c70e7474721afc5845e640e65a1638188c3124226ee5886dfbb150555b",
+      "free": true
+    },
+    {
+      "edition": "plus",
+      "version": "1.6.0",
+      "file": "MyLittlePet-Plus-1.6.0-Windows-Setup.exe",
+      "sizeMB": 16.3,
+      "sha256": "f791f2d79ece64275f688cf2d71b9bf2aee2915ffffe390fe904e43307b9c49f",
+      "free": true
+    }
+  ],
+  "mobile": "../app/",
+  "itch": "https://tejapriyan.itch.io/mylittlepet"
 }

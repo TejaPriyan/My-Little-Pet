@@ -1,5 +1,8 @@
 """The pet entity: stats, personality, progression and animation state."""
 import random
+import math
+from life import identity, temperament, set_trait
+from economy import allowance
 
 import pygame
 
@@ -19,12 +22,14 @@ class Animator:
         self.t = 0.0
         self.index = 0
         self.speed = 1.0
+        self.transition = 0.0
 
     def play(self, name, speed=1.0):
         if name not in self.clips:
             name = "idle"
         if name != self.name:
             self.name, self.t, self.index = name, 0.0, 0
+            self.transition = .18
         self.speed = speed
 
     def set_clips(self, clips):
@@ -34,6 +39,7 @@ class Animator:
             self.name = "idle"
 
     def update(self, dt):
+        self.transition = max(0, self.transition - dt)
         clip = self.clips[self.name]
         self.t += dt * clip.fps * self.speed
         new = int(self.t) % len(clip.frames)
@@ -55,6 +61,14 @@ class Pet:
     def __init__(self, assets, data):
         self.assets = assets
         self.name = data["pet_name"]
+        self.pet_id = identity(data.get("pet_id"))
+        self.bonds = dict(data.get("bonds", {}))
+        self.adventure = dict(data.get("adventure", {}))
+        self.owned_toys = list(data.get("owned_toys", ["ball"]))
+        self.selected_toy = data.get("selected_toy", "ball")
+        self.owned_decor = list(data.get("owned_decor", ["bed", "toy"]))
+        self.room_layout = dict(data.get("room_layout", {}))
+        self.room_hidden = list(data.get("room_hidden", []))
         self.owner_name = data.get("owner_name", "Friend")
         self.level = data["level"]
         self.xp = data["experience"]
@@ -62,6 +76,14 @@ class Pet:
         self.happiness = data["happiness"]
         self.energy = data["energy"]
         self.coins = data["coins"]
+        self.companions = list(data.get("companions", []))
+        self.pet_slots = data.get("pet_slots", 1)
+        self.solo = data.get("solo", False)
+        self.pantry = dict(data.get("pantry", {}))
+        self.selected_food = data.get("selected_food", "kibble")
+        self.reward_times = dict(data.get("reward_times", {}))
+        self.arcade = dict(data.get("arcade", {}))
+        self.desktop_layout = dict(data.get("desktop_layout", {}))
         self.daily = dict(data.get("daily", {}))
         self.tutorial_seen = data.get("tutorial_seen", False)
         self.room_theme = data.get("room_theme", "classic")
@@ -71,6 +93,8 @@ class Pet:
         self._stretch_left = 0.0
         self._stretch_anim = None
         self.personality = dict(data["personality"])
+        self.temperament = data.get("temperament", temperament(self.personality))
+        if "temperament" in data: set_trait(self, self.temperament)
         self.inventory = dict(data.get("inventory", {}))
         self.stats = {
             "total_feeds": 0,
@@ -151,7 +175,7 @@ class Pet:
         """Add raw XP (mini-games). Returns levels gained."""
         self.xp += xp
         levels = 0
-        while self.xp >= self.xp_needed:
+        while self.xp >= self.xp_needed and self.level < 999:
             self.xp -= self.xp_needed
             self.level += 1
             self.coins += COIN_REWARDS["levelup"]
@@ -216,10 +240,12 @@ class Pet:
     # ---------------------------------------------------------------- progress
     def gain(self, kind):
         """Award XP + coins for an action. Returns the number of levels gained."""
+        if not allowance(self, kind):
+            return 0
         self.xp += XP_REWARDS.get(kind, 0)
         self.coins += COIN_REWARDS.get(kind, 0)
         levels = 0
-        while self.xp >= self.xp_needed:
+        while self.xp >= self.xp_needed and self.level < 999:
             self.xp -= self.xp_needed
             self.level += 1
             self.coins += COIN_REWARDS["levelup"]
@@ -273,6 +299,9 @@ class Pet:
         if shadow and not self.on_bed and not self.carried:
             surf.blit(assets.shadow, (x - 8, y - 4))
         top = y - 22 - int(round(self.z))
+        # A small anticipation dip keeps the silhouette crisp on transparent desktops.
+        if not self.carried and not self.anim.name.startswith("walk_"):
+            top += round(2 * math.sin(math.pi * self.anim.transition / .18))
         left = x - FRAME // 2
         surf.blit(self.frame(), (left, top))
         acc = self.accessory
@@ -291,7 +320,10 @@ class Pet:
     # ---------------------------------------------------------------- save
     def to_dict(self):
         return {
-            "version": 4, "pet_name": self.name, "owner_name": self.owner_name, "level": self.level, "experience": self.xp,
+            "version": 6, "pet_name": self.name, "owner_name": self.owner_name, "level": self.level, "experience": self.xp,
+            "pet_id": self.pet_id, "temperament": self.temperament, "bonds": self.bonds, "adventure": self.adventure,
+            "owned_toys": self.owned_toys, "selected_toy": self.selected_toy,
+            "owned_decor": self.owned_decor, "room_layout": self.room_layout, "room_hidden": self.room_hidden,
             "hunger": round(self.hunger, 2), "happiness": round(self.happiness, 2),
             "energy": round(self.energy, 2), "position_x": round(self.x, 1),
             "position_y": round(self.y, 1), "personality": self.personality,
@@ -301,5 +333,8 @@ class Pet:
             "owned_species": list(self.owned_species),
             "daily": self.daily, "tutorial_seen": self.tutorial_seen,
             "room_theme": self.room_theme, "owned_rooms": list(self.owned_rooms),
+            "companions": self.companions, "pet_slots": self.pet_slots, "solo": self.solo,
+            "pantry": self.pantry, "selected_food": self.selected_food,
+            "reward_times": self.reward_times, "arcade": self.arcade, "desktop_layout": self.desktop_layout,
         }
 

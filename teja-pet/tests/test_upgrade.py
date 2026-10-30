@@ -132,8 +132,8 @@ def test_daily_rooms():
     p = g.pet; p.daily = {}
     base = p.coins
     for kind in ("feed", "feed", "feed", "play", "play", "game"): record(p, kind)
-    assert p.coins == base + 30
-    record(p, "game"); assert p.coins == base + 30
+    assert p.coins == base + 12
+    record(p, "game"); assert p.coins == base + 12
     p.level = 5; unlock_rooms(p)
     assert set(p.owned_rooms) == {"classic", "garden", "starlight"}
     for key in p.owned_rooms:
@@ -151,9 +151,9 @@ def test_desktop_logic():
         def close(self): pass
     window = Window(); desk = DesktopPet(g, window); g.desktop = desk
     p.energy = 20
-    desk.command("home")
+    desk.command("sleep")
     for _ in range(500): desk.update(.05)
-    assert desk.state == "sleep" and p.hidden, (desk.state, p.energy)
+    assert desk.state == "sleep" and not p.hidden, (desk.state, p.energy)
     g.save_now()
     data = g.saves.load()
     assert (data["position_x"], data["position_y"]) == (round(room[0], 1), round(room[1], 1))

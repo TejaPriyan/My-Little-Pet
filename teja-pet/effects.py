@@ -102,11 +102,14 @@ class Effects:
                                self.rng.uniform(-8, -2), self.rng.uniform(0.25, 0.45), "px",
                                (236, 214, 184), 1, 20))
 
-    def crumbs(self, x, y):
+    def crumbs(self, x, y, food="kibble"):
+        colors = {"berries": [(197,80,118), (111,103,186)], "fish": [(250,174,158), (255,220,192)],
+                  "greens": [(79,147,78), (133,193,91)], "milk": [(255,250,230), (196,227,239)],
+                  "soup": [(244,177,67), (95,155,86)], "feast": [(250,232,185), (236,141,106), (106,176,107)]}
         for _ in range(3):
             self._add(Particle(x, y, self.rng.uniform(-16, 16), self.rng.uniform(-26, -12),
                                self.rng.uniform(0.35, 0.6), "px",
-                               self.rng.choice([(196, 124, 74), (232, 164, 100)]), 1, 90))
+                               self.rng.choice(colors.get(food, [(196, 124, 74), (232, 164, 100)])), 1, 90))
 
     def burst(self, x, y):
         """Level-up celebration."""
