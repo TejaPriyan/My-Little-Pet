@@ -43,7 +43,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), and [CHANGEL
 ## Run and build the free release
 
 - Preview website: `node scripts/serve-site.mjs` (port 4176).
-- Python source: `python teja-pet/plus_main.py`. Install dependencies from requirements.txt first.
+- Python source: `python teja-pet/plus_main.py`. Install dependencies with `pip install -r teja-pet/requirements.txt` first.
 - Checks: `python .github/scripts/check.py`.
 - Windows executable: `pyinstaller --noconfirm --distpath release-free --workpath packaging/build-free packaging/MyLittlePetPlus.spec`.
 - Windows installer: compile `packaging/plus-free.iss` with Inno Setup.
