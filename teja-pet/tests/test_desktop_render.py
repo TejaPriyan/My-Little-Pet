@@ -95,8 +95,11 @@ for i in range(len(menu.rows)-1):
 with patch('webbrowser.open') as opened:
     menu.on_click(menu._row_rect(menu.rows.index('BUY ME A COFFEE')).center)
     opened.assert_called_once_with('https://buymeacoffee.com/tejapriyan')
+with patch('webbrowser.open') as opened:
+    menu.on_click(menu._row_rect(menu.rows.index('VISIT WEBSITE')).center)
+    opened.assert_called_once_with('https://www.mylittlepet.in/')
 menu.draw(pygame.Surface((480, 270)))
-print('PASS optional support opens the correct external page and menu click areas do not overlap')
+print('PASS website and optional support open the correct external pages and menu click areas do not overlap')
 
 d.restore()
 pygame.quit()

@@ -2,7 +2,7 @@
 import {mkdir,readFile,writeFile,copyFile,readdir,lstat} from 'node:fs/promises';
 import path from 'node:path';
 const root=path.resolve(import.meta.dirname,'..'),src=path.join(root,'my-little-pet-site/dist'),out=path.join(root,'public-site');
-const base=(process.env.PUBLIC_SITE_URL||'https://littlepet.in').replace(/\/$/,'');
+const base=(process.env.PUBLIC_SITE_URL||'https://www.mylittlepet.in').replace(/\/$/,'');
 if(!/^https:\/\/[\w.-]+(?:\/[\w.-]+)*$/.test(base))throw new Error('Expected a public HTTPS site URL');
 try{await mkdir(out)}catch(e){if(e.code!=='EEXIST')throw e;if((await readdir(out)).length)throw new Error('Archive the existing public-site folder before rebuilding.')}
 const pages=['index.html','about.html','pricing.html','installation.html','contact.html','privacy.html','terms.html','refunds.html','delivery.html','guide.html'];
@@ -12,7 +12,7 @@ async function copy(file){
  const from=path.join(src,file),to=path.join(out,file),s=await lstat(from);
  if(!s.isFile())throw new Error('Not a regular file: '+file);
  await mkdir(path.dirname(to),{recursive:true});
- if(/\.(html|xml|txt)$/.test(file))await writeFile(to,(await readFile(from,'utf8')).replaceAll('https://littlepet.in',base));else await copyFile(from,to);copied++;
+ if(/\.(html|xml|txt)$/.test(file))await writeFile(to,(await readFile(from,'utf8')).replaceAll('https://www.mylittlepet.in',base));else await copyFile(from,to);copied++;
 }
 async function tree(folder){for(const entry of await readdir(path.join(src,folder),{withFileTypes:true})){const file=folder+'/'+entry.name;if(entry.isSymbolicLink())throw new Error('Symlinks cannot be published');if(entry.isDirectory())await tree(file);else if(/\.(?:html|mjs|js|css|webmanifest|json|png|gif|svg|ico|woff2?|ttf)$/.test(file)&&!/(?:entitlement|payment|checkout|secret|\.env)/i.test(file))await copy(file);else throw new Error('Unexpected public asset: '+file)}}
 for(const file of [...pages,'style.css','plus.css','site.js','robots.txt','sitemap.xml','llms.txt','google2af4e1ed3191321d.html',...downloads.map(n=>'downloads/'+n)])await copy(file);

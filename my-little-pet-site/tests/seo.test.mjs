@@ -2,7 +2,7 @@ import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import path from 'node:path';
 const root=path.resolve(import.meta.dirname,'../dist');
-const base='https://littlepet.in';
+const base='https://www.mylittlepet.in';
 const read=file=>readFile(path.join(root,file),'utf8');
 for(const file of ['index.html','guide.html','privacy.html','terms.html','about.html','pricing.html','installation.html','contact.html','refunds.html','delivery.html']){
   const html=await read(file);

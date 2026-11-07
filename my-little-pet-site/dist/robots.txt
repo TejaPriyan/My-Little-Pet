@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /app/
 
-Sitemap: https://littlepet.in/sitemap.xml
+Sitemap: https://www.mylittlepet.in/sitemap.xml

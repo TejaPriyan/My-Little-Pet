@@ -376,6 +376,7 @@ class NameScreen:
 
 class SettingsMenu:
     ROW_H = 12
+    OFFICIAL_WEBSITE_URL = "https://www.mylittlepet.in/"
 
     def __init__(self, ui, settings, on_change, on_reset, on_close):
         self.ui, self.s = ui, settings
@@ -383,9 +384,9 @@ class SettingsMenu:
         self.sel = 0
         self.mouse = None
         self.modal = True
-        self.rect = pygame.Rect(100, 16, 280, 238)
+        self.rect = pygame.Rect(100, 8, 280, 254)
         self.rows = ["SOUND", "MUSIC", "VOLUME", "FPS", "FULLSCREEN", "TIME OF DAY",
-                     "RESET PET", "DESKTOP PET SIZE", "VOICE", "QUIET", "WEATHER", "DESKTOP", "HELP", "OWNER + PET NAMES", "BUY ME A COFFEE", "CLOSE"]
+                     "RESET PET", "DESKTOP PET SIZE", "VOICE", "QUIET", "WEATHER", "DESKTOP", "HELP", "OWNER + PET NAMES", "BUY ME A COFFEE", "VISIT WEBSITE", "CLOSE"]
 
     def _row_rect(self, i):
         return pygame.Rect(self.rect.x + 8, self.rect.y + 28 + i * self.ROW_H, self.rect.w - 16, self.ROW_H)
@@ -443,6 +444,11 @@ class SettingsMenu:
             import webbrowser
             webbrowser.open('https://buymeacoffee.com/tejapriyan')
             self.ui.toast('OPTIONAL SUPPORT - EVERYTHING IS FREE')
+            return
+        elif i == 15:
+            import webbrowser
+            webbrowser.open(self.OFFICIAL_WEBSITE_URL)
+            self.ui.toast('OPENING THE MY LITTLE PET WEBSITE')
             return
         else:
             self.on_close()
