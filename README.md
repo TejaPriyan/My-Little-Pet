@@ -32,7 +32,7 @@ A cozy pixel-art companion by **Teja Priyan**: a Windows desktop pet and an inst
 
 ## Saves and privacy
 
-Plus saves retain `%LOCALAPPDATA%/MyLittlePetPlusTest/save` to preserve existing pets. Free installed Windows saves: `%LOCALAPPDATA%/MyLittlePet/save`. Source runs: `teja-pet/save`. Set `MY_LITTLE_PET_SAVE_DIR` to override for isolated development. Mobile saves live in browser local storage. **Desktop and mobile progress are separate.** Back up mobile progress before clearing browser data. The app has no added analytics, ads, or cloud account system; hosting providers process ordinary request logs. Use nicknames for your local pet.
+Plus saves live in `%LOCALAPPDATA%/MyLittlePetPlus/save` (existing `%LOCALAPPDATA%/MyLittlePetPlusTest/save` data migrates automatically). Free installed Windows saves: `%LOCALAPPDATA%/MyLittlePet/save`. Source runs: `teja-pet/save`. Set `MY_LITTLE_PET_SAVE_DIR` to override for isolated development. Mobile saves live in browser local storage. **Desktop and mobile progress are separate.** Back up mobile progress before clearing browser data. The app has no added analytics, ads, or cloud account system; hosting providers process ordinary request logs. Use nicknames for your local pet.
 
 ## Ownership and support
 

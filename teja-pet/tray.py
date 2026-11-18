@@ -3,9 +3,28 @@
 API reference: https://learn.microsoft.com/windows/win32/shell/notification-area
 """
 import ctypes as C
-from ctypes import wintypes as W
+try:
+    from ctypes import wintypes as W
+except (ImportError, AttributeError):
+    W = None
 import os
 from pathlib import Path
+import sys
+
+from config import ASSET_DIR
+
+
+def _tray_icon_path():
+    """Return the bundled pet.ico in frozen builds, falling back to packaging/pet.ico."""
+    candidates = [Path(ASSET_DIR) / "pet.ico"]
+    meipass = getattr(sys, "_MEIPASS", None)
+    if meipass:
+        candidates.append(Path(meipass) / "packaging" / "pet.ico")
+    candidates.append(Path(__file__).resolve().parent.parent / "packaging" / "pet.ico")
+    for candidate in candidates:
+        if candidate.is_file():
+            return str(candidate)
+    return str(candidates[-1])
 
 
 class Tray:
@@ -63,7 +82,7 @@ class Tray:
         if not self.hwnd:
             self.u.UnregisterClassW(self.class_name, self.instance)
             raise OSError("Could not create tray window")
-        path = str(Path(__file__).resolve().parent.parent / "packaging" / "pet.ico")
+        path = _tray_icon_path()
         self.icon = self.u.LoadImageW(None, path, 1, 16, 16, 0x10)
         self.custom_icon = bool(self.icon)
         self.icon = self.icon or self.u.LoadIconW(None, C.c_void_p(32512))

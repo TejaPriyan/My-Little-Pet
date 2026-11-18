@@ -3,18 +3,41 @@ import os
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.join(HERE, ".."))
-sys.path.insert(0, HERE)
+pg = H = config = game = BugCatchGame = Bug = SaveSystem = default_data = sanitize = World = DayNight = None
+_ORIG_PYGAME = None
+_HAD_PYGAME = False
 
-import fake_pygame
-pg = fake_pygame.install()
-H = pg._harness
 
-import config
-import game
-from minigame import BugCatchGame, Bug
-from save_system import SaveSystem, default_data, sanitize
-from world import World, DayNight
+def setup_module(module=None):
+    global pg, H, config, game, BugCatchGame, Bug, SaveSystem, default_data, sanitize, World, DayNight
+    os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
+    os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
+    global _ORIG_PYGAME, _HAD_PYGAME
+    _HAD_PYGAME = "pygame" in sys.modules
+    _ORIG_PYGAME = sys.modules.get("pygame")
+    if os.path.join(HERE, "..") not in sys.path:
+        sys.path.insert(0, os.path.join(HERE, ".."))
+    if HERE not in sys.path:
+        sys.path.insert(0, HERE)
+    import fake_pygame
+    pg = fake_pygame.install()
+    H = pg._harness
+    import config as cfg
+    import game as gm
+    from minigame import BugCatchGame as BCG, Bug as Bg
+    from save_system import SaveSystem as SS, default_data as dd, sanitize as sz
+    from world import World as Wld, DayNight as DN
+    config, game = cfg, gm
+    BugCatchGame, Bug = BCG, Bg
+    SaveSystem, default_data, sanitize = SS, dd, sz
+    World, DayNight = Wld, DN
+
+
+def teardown_module(module=None):
+    if _HAD_PYGAME:
+        sys.modules["pygame"] = _ORIG_PYGAME
+    else:
+        sys.modules.pop("pygame", None)
 
 
 def test_shop_new_items():
@@ -112,12 +135,16 @@ def test_achievements_unlock():
 
 
 if __name__ == "__main__":
-    test_shop_new_items()
-    print("PASS  test_shop_new_items")
-    test_weather_system()
-    print("PASS  test_weather_system")
-    test_minigame_mechanics()
-    print("PASS  test_minigame_mechanics")
-    test_achievements_unlock()
-    print("PASS  test_achievements_unlock")
-    print("\nALL NEW FEATURE TESTS PASSED")
+    setup_module()
+    try:
+        test_shop_new_items()
+        print("PASS  test_shop_new_items")
+        test_weather_system()
+        print("PASS  test_weather_system")
+        test_minigame_mechanics()
+        print("PASS  test_minigame_mechanics")
+        test_achievements_unlock()
+        print("PASS  test_achievements_unlock")
+        print("\nALL NEW FEATURE TESTS PASSED")
+    finally:
+        teardown_module()

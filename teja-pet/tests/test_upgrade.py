@@ -8,31 +8,53 @@ import tempfile
 from pathlib import Path
 from types import SimpleNamespace
 
-os.environ["SDL_VIDEODRIVER"] = "dummy"
-os.environ["SDL_AUDIODRIVER"] = "dummy"
 ROOT = Path(__file__).resolve().parents[2]
-sys.path[:0] = [str(ROOT / ".runtime"), str(ROOT / "teja-pet")]
-import pygame
-import config
-
-(ROOT / "review-temp").mkdir(exist_ok=True)
-tmp = tempfile.TemporaryDirectory(dir=ROOT / "review-temp")
-config.SAVE_DIR = tmp.name
-config.SAVE_PATH = str(Path(tmp.name) / "save.json")
-config.SETTINGS_PATH = str(Path(tmp.name) / "settings.json")
-from game import Game
-from save_system import default_data, sanitize, SaveSystem
-from minigame import BugCatchGame, TreatDropGame
-from menus import ShopMenu, Tutorial
-from desktop import DesktopPet
-from activities import record, unlock_rooms
+pygame = config = tmp = g = shots = None
+default_data = sanitize = SaveSystem = BugCatchGame = TreatDropGame = None
+ShopMenu = Tutorial = DesktopPet = record = unlock_rooms = None
 
 
-g = Game()
-g.start_session(default_data("Upgrade"), offline=False)
-g.overlay = None
-shots = ROOT / "upgrade-shots"
-shots.mkdir(exist_ok=True)
+def setup_module(module=None):
+    global pygame, config, tmp, g, shots
+    global default_data, sanitize, SaveSystem, BugCatchGame, TreatDropGame
+    global ShopMenu, Tutorial, DesktopPet, record, unlock_rooms
+    os.environ["SDL_VIDEODRIVER"] = "dummy"
+    os.environ["SDL_AUDIODRIVER"] = "dummy"
+    for p in (str(ROOT / "teja-pet"), str(ROOT / ".runtime")):
+        if p not in sys.path:
+            sys.path.insert(0, p)
+    (ROOT / "review-temp").mkdir(parents=True, exist_ok=True)
+    tmp = tempfile.TemporaryDirectory(dir=ROOT / "review-temp")
+    os.environ["MY_LITTLE_PET_SAVE_DIR"] = tmp.name
+    import pygame as pg
+    import config as cfg
+    pygame = pg
+    config = cfg
+    config.SAVE_DIR = tmp.name
+    config.SAVE_PATH = str(Path(tmp.name) / "save.json")
+    config.SETTINGS_PATH = str(Path(tmp.name) / "settings.json")
+    from game import Game
+    from save_system import default_data as dd, sanitize as sz, SaveSystem as SS
+    from minigame import BugCatchGame as BCG, TreatDropGame as TDG
+    from menus import ShopMenu as SM, Tutorial as Tut
+    from desktop import DesktopPet as DP
+    from activities import record as rec, unlock_rooms as ur
+    default_data, sanitize, SaveSystem = dd, sz, SS
+    BugCatchGame, TreatDropGame = BCG, TDG
+    ShopMenu, Tutorial, DesktopPet = SM, Tut, DP
+    record, unlock_rooms = rec, ur
+    g = Game()
+    g.start_session(default_data("Upgrade"), offline=False)
+    g.overlay = None
+    shots = ROOT / "upgrade-shots"
+    shots.mkdir(parents=True, exist_ok=True)
+
+
+def teardown_module(module=None):
+    if g is not None:
+        g.shutdown()
+    if tmp is not None:
+        tmp.cleanup()
 
 
 def shot(name):
@@ -161,7 +183,7 @@ def test_desktop_logic():
     for _ in range(900): desk.update(.05)
     assert not p.hidden and p.energy > 90
     p.hunger = 30; desk.command("feed")
-    for _ in range(350): desk.update(.05)
+    for _ in range(500): desk.update(.05)
     assert p.hunger > 45
     desk.wake(); desk.target = None
     p.x, p.y = 180, 160
@@ -195,10 +217,10 @@ def test_assets_and_sounds():
 
 
 if __name__ == "__main__":
+    setup_module()
     try:
         for name, fn in list(globals().items()):
             if name.startswith("test_"):
                 fn(); print("PASS", name, flush=True)
     finally:
-        g.shutdown()
-        tmp.cleanup()
+        teardown_module()

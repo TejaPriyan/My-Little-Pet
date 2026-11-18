@@ -5,30 +5,51 @@ import tempfile
 import time
 from pathlib import Path
 
-os.environ['SDL_VIDEODRIVER'] = 'dummy'
-os.environ['SDL_AUDIODRIVER'] = 'dummy'
 ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT / 'teja-pet'))
-import pygame
-import config
+pygame = config = tmp = g = p = shots = None
+default_data = sanitize = DesktopPet = allowance = meal = start_round = refresh_arcade = None
+BugCatchGame = MemoryGardenGame = FireflyRhythmGame = None
 
-(ROOT / 'review-temp').mkdir(exist_ok=True)
-tmp = tempfile.TemporaryDirectory(dir=ROOT / 'review-temp')
-config.SAVE_DIR = tmp.name
-config.SAVE_PATH = str(Path(tmp.name) / 'save.json')
-config.SETTINGS_PATH = str(Path(tmp.name) / 'settings.json')
-from game import Game
-from save_system import default_data, sanitize
-from desktop import DesktopPet
-from economy import allowance, meal, start_round, refresh_arcade
-from minigame import BugCatchGame, MemoryGardenGame, FireflyRhythmGame
 
-g = Game()
-g.start_session(default_data('Mochi', 'Rose'), offline=False)
-g.overlay = None
-p = g.pet
-shots = ROOT / 'upgrade-shots'
-shots.mkdir(exist_ok=True)
+def setup_module(module=None):
+    global pygame, config, tmp, g, p, shots
+    global default_data, sanitize, DesktopPet, allowance, meal, start_round, refresh_arcade
+    global BugCatchGame, MemoryGardenGame, FireflyRhythmGame
+    os.environ['SDL_VIDEODRIVER'] = 'dummy'
+    os.environ['SDL_AUDIODRIVER'] = 'dummy'
+    if str(ROOT / 'teja-pet') not in sys.path:
+        sys.path.insert(0, str(ROOT / 'teja-pet'))
+    (ROOT / 'review-temp').mkdir(parents=True, exist_ok=True)
+    tmp = tempfile.TemporaryDirectory(dir=ROOT / 'review-temp')
+    os.environ['MY_LITTLE_PET_SAVE_DIR'] = tmp.name
+    import pygame as pg
+    import config as cfg
+    pygame = pg
+    config = cfg
+    config.SAVE_DIR = tmp.name
+    config.SAVE_PATH = str(Path(tmp.name) / 'save.json')
+    config.SETTINGS_PATH = str(Path(tmp.name) / 'settings.json')
+    from game import Game
+    from save_system import default_data as dd, sanitize as sz
+    from desktop import DesktopPet as DP
+    from economy import allowance as al, meal as ml, start_round as sr, refresh_arcade as ra
+    from minigame import BugCatchGame as BCG, MemoryGardenGame as MGG, FireflyRhythmGame as FRG
+    default_data, sanitize, DesktopPet = dd, sz, DP
+    allowance, meal, start_round, refresh_arcade = al, ml, sr, ra
+    BugCatchGame, MemoryGardenGame, FireflyRhythmGame = BCG, MGG, FRG
+    g = Game()
+    g.start_session(default_data('Mochi', 'Rose'), offline=False)
+    g.overlay = None
+    p = g.pet
+    shots = ROOT / 'upgrade-shots'
+    shots.mkdir(parents=True, exist_ok=True)
+
+
+def teardown_module(module=None):
+    if g is not None:
+        g.shutdown()
+    if tmp is not None:
+        tmp.cleanup()
 
 def test_household():
     p.achievements.update(config.ACHIEVEMENTS)
@@ -183,8 +204,9 @@ def test_desktop_front_door():
     assert (g.pet.x,g.pet.y) == room
 
 if __name__ == '__main__':
+    setup_module()
     try:
         for fn in (test_household,test_economy_and_migration,test_taps_and_room_bundles,test_rounds,test_desktop_front_door):
             fn(); print('PASS',fn.__name__,flush=True)
     finally:
-        g.shutdown(); tmp.cleanup()
+        teardown_module()

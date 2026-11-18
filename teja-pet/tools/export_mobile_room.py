@@ -4,6 +4,7 @@ from pathlib import Path
 root=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(root/'teja-pet'))
 os.environ.update(SDL_VIDEODRIVER='dummy',SDL_AUDIODRIVER='dummy')
+(root/'review-temp').mkdir(parents=True, exist_ok=True)
 with tempfile.TemporaryDirectory(dir=root/'review-temp') as tmp:
  os.environ['MY_LITTLE_PET_SAVE_DIR']=tmp
  import pygame

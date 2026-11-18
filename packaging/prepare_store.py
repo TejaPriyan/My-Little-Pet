@@ -15,14 +15,14 @@ import xml.etree.ElementTree as ET
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = "1.5.1.0"
+VERSION = "1.6.0.0"
 FOUNDATION = "http://schemas.microsoft.com/appx/manifest/foundation/windows10"
 UAP = "http://schemas.microsoft.com/appx/manifest/uap/windows10"
 UAP10 = UAP + "/10"
 RESCAP = FOUNDATION + "/restrictedcapabilities"
-EXE = "MyLittlePetPlusTest.exe"
+EXE = "MyLittlePetPlus.exe"
 PREVIEW = {"name": "LocalPreview.MyLittlePetPlus", "publisher": "CN=LocalPreview",
-           "publisherDisplayName": "Local preview only", "displayName": "My Little Pet Plus Test"}
+           "publisherDisplayName": "Local preview only", "displayName": "My Little Pet Plus Preview"}
 
 
 def validate_identity(data):
@@ -73,8 +73,11 @@ def write_manifest(path, identity):
 
 
 def check_payload(payload):
-    if not (payload / EXE).is_file() or not (payload / "_internal" / "assets").is_dir():
-        raise ValueError("Build MyLittlePetPlusStore.spec first; a directory payload with _internal/assets is required")
+    if not (payload / EXE).is_file():
+        raise ValueError(f"Build packaging/MyLittlePetPlus.spec first; {EXE} is required")
+    internal = payload / "_internal"
+    if internal.exists() and not (internal / "assets").is_dir():
+        raise ValueError("Build packaging/MyLittlePetPlus.spec first; a directory payload with _internal requires _internal/assets")
     for file in payload.rglob("*"):
         if file.is_symlink() or file.is_junction():
             raise ValueError("Package payload must not contain links or junctions")
@@ -96,7 +99,7 @@ def stage_package(payload, stage, identity, preview):
     identity = dict(PREVIEW) if preview else validate_identity(identity)
     stage.parent.mkdir(parents=True, exist_ok=True)
     shutil.copytree(payload, stage)
-    for name in ("THIRD-PARTY-NOTICES.txt", "PLUS-TEST-NOTES.txt"):
+    for name in ("THIRD-PARTY-NOTICES.txt", "PLUS-README.txt"):
         shutil.copy2(ROOT / "packaging" / name, stage / name)
     assets = stage / "StoreAssets"
     assets.mkdir()
@@ -126,7 +129,7 @@ def main():
     source = parser.add_mutually_exclusive_group(required=True)
     source.add_argument("--preview", action="store_true")
     source.add_argument("--identity", type=Path, help="JSON with exact Partner Center identity fields")
-    parser.add_argument("--payload", type=Path, default=ROOT / "release-store/MyLittlePetPlus")
+    parser.add_argument("--payload", type=Path, default=ROOT / "release-free")
     parser.add_argument("--stage", type=Path, required=True)
     args = parser.parse_args()
     try:

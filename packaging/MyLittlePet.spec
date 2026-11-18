@@ -7,7 +7,7 @@ a = Analysis(
     [str(ROOT / 'teja-pet' / 'main.py')],
     pathex=[],
     binaries=[],
-    datas=[(str(ROOT / 'teja-pet' / 'assets'), 'assets')],
+    datas=[(str(ROOT / 'teja-pet' / 'assets'), 'assets'), (str(ROOT / 'packaging' / 'pet.ico'), 'assets')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

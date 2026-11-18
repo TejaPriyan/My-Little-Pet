@@ -14,21 +14,35 @@ import time
 import traceback
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.join(HERE, ".."))
-sys.path.insert(0, HERE)
-try:
-    import pygame                         # noqa: F401
-    H = None
-    raise ImportError                     # force the stub: tests need input injection
-except ImportError:
+pg = H = config = SHOTS = None
+_ORIG_PYGAME = None
+_HAD_PYGAME = False
+
+
+def setup_module(module=None):
+    global pg, H, config, SHOTS, _ORIG_PYGAME, _HAD_PYGAME
+    os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
+    os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
+    _HAD_PYGAME = "pygame" in sys.modules
+    _ORIG_PYGAME = sys.modules.get("pygame")
+    if os.path.join(HERE, "..") not in sys.path:
+        sys.path.insert(0, os.path.join(HERE, ".."))
+    if HERE not in sys.path:
+        sys.path.insert(0, HERE)
     import fake_pygame
     pg = fake_pygame.install()
     H = pg._harness
+    import config as cfg
+    config = cfg
+    SHOTS = os.environ.get("TEJA_SHOTS", os.path.join(tempfile.gettempdir(), "teja_shots"))
+    os.makedirs(SHOTS, exist_ok=True)
 
-import config                             # noqa: E402
 
-SHOTS = os.environ.get("TEJA_SHOTS", os.path.join(tempfile.gettempdir(), "teja_shots"))
-os.makedirs(SHOTS, exist_ok=True)
+def teardown_module(module=None):
+    if _HAD_PYGAME:
+        sys.modules["pygame"] = _ORIG_PYGAME
+    else:
+        sys.modules.pop("pygame", None)
 
 
 class Sim:
@@ -684,18 +698,22 @@ TESTS = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
 ORDER = ["test_first_launch_and_save", "test_movement_and_animation", "test_collision_and_bounds"]
 
 if __name__ == "__main__":
+    setup_module()
     only = sys.argv[1:]
     failed = 0
-    for fn in TESTS:
-        if only and fn.__name__ not in only:
-            continue
-        t0 = time.time()
-        try:
-            fn()
-            print("PASS  %-52s %.1fs" % (fn.__name__, time.time() - t0))
-        except Exception:
-            failed += 1
-            print("FAIL  %s" % fn.__name__)
-            traceback.print_exc()
+    try:
+        for fn in TESTS:
+            if only and fn.__name__ not in only:
+                continue
+            t0 = time.time()
+            try:
+                fn()
+                print("PASS  %-52s %.1fs" % (fn.__name__, time.time() - t0))
+            except Exception:
+                failed += 1
+                print("FAIL  %s" % fn.__name__)
+                traceback.print_exc()
+    finally:
+        teardown_module()
     print("\n%d failed" % failed if failed else "\nALL TESTS PASSED")
     sys.exit(1 if failed else 0)

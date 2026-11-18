@@ -2,7 +2,7 @@
 from pathlib import Path
 ROOT = Path(SPECPATH).resolve().parent
 a = Analysis([str(ROOT/'teja-pet'/'plus_main.py')], pathex=[str(ROOT/'teja-pet')], binaries=[],
-    datas=[(str(ROOT/'teja-pet'/'assets'),'assets')], hiddenimports=[], hookspath=[], hooksconfig={},
+    datas=[(str(ROOT/'teja-pet'/'assets'),'assets'), (str(ROOT/'packaging'/'pet.ico'),'assets')], hiddenimports=[], hookspath=[], hooksconfig={},
     runtime_hooks=[], excludes=['numpy','matplotlib','pandas','scipy','tkinter'], noarchive=False, optimize=0)
 pyz = PYZ(a.pure)
 exe = EXE(pyz,a.scripts,a.binaries,a.datas,[],name='MyLittlePetPlus',debug=False,
